@@ -1,0 +1,70 @@
+name: Deploy LiquidHub to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm ci
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Build backend
+      run: |
+        cd backend
+        npm run build
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        port: ${{ secrets.SERVER_PORT || 22 }}
+        script: |
+          # Navigate to project directory
+          cd /opt/liquidhub
+
+          # Pull latest changes
+          git pull origin main
+
+          # Install/update dependencies
+          cd backend && npm ci && cd ..
+          cd frontend && npm ci && cd ..
+
+          # Build applications
+          cd backend && npm run build && cd ..
+          cd frontend && npm run build && cd ..
+
+          # Restart services (adjust based on your setup)
+          # Using PM2 for process management
+          pm2 restart liquidhub-backend || pm2 start dist/index.js --name liquidhub-backend
+          pm2 restart liquidhub-frontend || pm2 start npm --name liquidhub-frontend -- run preview
+
+          # Reload nginx (if using nginx)
+          sudo systemctl reload nginx || true
