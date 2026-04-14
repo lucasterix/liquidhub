@@ -39,6 +39,6 @@ networks:
   liquidhub-network:
     driver: bridge
 
-volumes:
-  # Add volumes if you need persistent data
-  # db_data:
+# volumes:
+#   # Add volumes if you need persistent data
+#   # db_data:
