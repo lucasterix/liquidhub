@@ -1,4 +1,5 @@
-import { paletteList, palettes } from '../theme/palettes';
+import { useState } from 'react';
+import { paletteList, palettes, seriesColor, isValidHex } from '../theme/palettes';
 import {
   ChartConfig,
   ChartTypeId,
@@ -9,8 +10,11 @@ import {
 const TYPE_LABELS: Record<ChartTypeId, string> = {
   bar: 'Bar',
   'stacked-bar': 'Stacked Bar',
+  'horizontal-bar': 'Horizontal Bar',
+  'horizontal-bar-stacked': 'Horizontal Stacked',
   line: 'Line',
   area: 'Area',
+  'step-line': 'Step Line',
   doughnut: 'Doughnut',
   pie: 'Pie',
   polarArea: 'Polar',
@@ -29,6 +33,8 @@ type Props = {
   onClose: () => void;
 };
 
+const COLOR_SLOT_LABELS = ['Serie 1', 'Serie 2', 'Serie 3', 'Serie 4', 'Serie 5', 'Serie 6'];
+
 export default function ChartSettingsPopover({
   chartId,
   config,
@@ -38,8 +44,37 @@ export default function ChartSettingsPopover({
   const setConfig = useChartTheme((s) => s.setConfig);
   const resetConfig = useChartTheme((s) => s.resetConfig);
   const setGlobalPalette = useChartTheme((s) => s.setGlobalPalette);
+  const [hexDrafts, setHexDrafts] = useState<Record<number, string>>({});
 
   const update = (patch: Partial<ChartConfig>) => setConfig(chartId, patch);
+
+  const activePalette = palettes[config.palette];
+
+  const handleColorChange = (slot: number, raw: string) => {
+    setHexDrafts((d) => ({ ...d, [slot]: raw }));
+    if (isValidHex(raw)) {
+      const next = [...(config.customColors ?? [])];
+      while (next.length <= slot) next.push(null);
+      next[slot] = raw;
+      update({ customColors: next });
+    }
+  };
+
+  const clearCustomColor = (slot: number) => {
+    const next = [...(config.customColors ?? [])];
+    if (slot < next.length) next[slot] = null;
+    update({ customColors: next });
+    setHexDrafts((d) => {
+      const copy = { ...d };
+      delete copy[slot];
+      return copy;
+    });
+  };
+
+  const clearAllCustom = () => {
+    update({ customColors: [] });
+    setHexDrafts({});
+  };
 
   return (
     <div className="chart-popover" role="dialog" aria-label="Chart-Einstellungen">
@@ -83,6 +118,55 @@ export default function ChartSettingsPopover({
         </button>
       </div>
 
+      <div className="popover-section">
+        <label className="popover-label">Eigene Farben (Hex)</label>
+        <div className="color-slots">
+          {COLOR_SLOT_LABELS.map((label, slot) => {
+            const override = config.customColors?.[slot] ?? null;
+            const effective = seriesColor(activePalette, slot, config.customColors);
+            const draft = hexDrafts[slot] ?? override ?? '';
+            return (
+              <div key={slot} className="color-slot">
+                <label className="color-slot-label">{label}</label>
+                <div className="color-slot-row">
+                  <span className="color-swatch" style={{ background: effective }} />
+                  <input
+                    type="color"
+                    value={isValidHex(draft) ? draft : effective}
+                    onChange={(e) => handleColorChange(slot, e.target.value)}
+                    aria-label={`${label} Farbwähler`}
+                  />
+                  <input
+                    type="text"
+                    value={draft}
+                    placeholder={effective}
+                    onChange={(e) => handleColorChange(slot, e.target.value)}
+                    className="hex-input"
+                    aria-label={`${label} Hex-Code`}
+                  />
+                  {override && (
+                    <button
+                      type="button"
+                      className="chart-icon-btn small"
+                      onClick={() => clearCustomColor(slot)}
+                      title="Zurücksetzen"
+                      aria-label="Zurücksetzen"
+                    >
+                      ↺
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {config.customColors && config.customColors.some((c) => c) && (
+          <button type="button" className="link-btn" onClick={clearAllCustom}>
+            Alle eigenen Farben entfernen
+          </button>
+        )}
+      </div>
+
       {availableTypes && availableTypes.length > 1 && (
         <div className="popover-section">
           <label className="popover-label">Chart-Typ</label>
@@ -123,26 +207,10 @@ export default function ChartSettingsPopover({
           <label className="toggle">
             <input
               type="checkbox"
-              checked={config.fill}
-              onChange={(e) => update({ fill: e.target.checked })}
-            />
-            <span>Füllung</span>
-          </label>
-          <label className="toggle">
-            <input
-              type="checkbox"
               checked={config.beginAtZero}
               onChange={(e) => update({ beginAtZero: e.target.checked })}
             />
             <span>Y bei 0</span>
-          </label>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={config.showDataLabels}
-              onChange={(e) => update({ showDataLabels: e.target.checked })}
-            />
-            <span>Datenwerte</span>
           </label>
         </div>
       </div>
@@ -201,6 +269,7 @@ export default function ChartSettingsPopover({
           className="link-btn"
           onClick={() => {
             resetConfig(chartId);
+            setHexDrafts({});
             onClose();
           }}
         >

@@ -4,18 +4,26 @@ import { ChartConfig, ChartTypeId } from '../theme/useChartTheme';
 import { formatEUR } from '../lib/finance';
 
 export function resolveChartJsType(type: ChartTypeId): 'bar' | 'line' {
-  if (type === 'line' || type === 'area') return 'line';
+  if (type === 'line' || type === 'area' || type === 'step-line') return 'line';
   return 'bar';
 }
 
 export function isStacked(type: ChartTypeId): boolean {
-  return type === 'stacked-bar';
+  return type === 'stacked-bar' || type === 'horizontal-bar-stacked';
 }
 
-export function isFilledLine(type: ChartTypeId, fillToggle: boolean): boolean {
-  if (type === 'area') return true;
-  if (type === 'line') return fillToggle;
-  return false;
+export function isHorizontal(type: ChartTypeId): boolean {
+  return type === 'horizontal-bar' || type === 'horizontal-bar-stacked';
+}
+
+export function isFilledLine(type: ChartTypeId): boolean {
+  // Area always fills; line never fills. This keeps the two types
+  // visually distinct regardless of any user-facing fill toggle.
+  return type === 'area';
+}
+
+export function isSteppedLine(type: ChartTypeId): boolean {
+  return type === 'step-line';
 }
 
 type SeriesOpts = {
@@ -24,22 +32,23 @@ type SeriesOpts = {
   color: string;
   type: ChartTypeId;
   tension: number;
-  fill: boolean;
   stack?: string;
 };
 
 export function buildSeriesDataset(opts: SeriesOpts) {
-  const { label, data, color, type, tension, fill, stack } = opts;
+  const { label, data, color, type, tension, stack } = opts;
   const cjsType = resolveChartJsType(type);
   if (cjsType === 'line') {
+    const stepped = isSteppedLine(type);
     return {
       label,
       data,
       borderColor: color,
       backgroundColor: hexToRgba(color, 0.22),
       borderWidth: 2.5,
-      tension,
-      fill: isFilledLine(type, fill),
+      tension: stepped ? 0 : tension,
+      stepped: stepped ? ('before' as const) : false,
+      fill: isFilledLine(type),
       pointRadius: 3,
       pointHoverRadius: 5,
       pointBackgroundColor: '#0b1120',
@@ -66,9 +75,25 @@ export function baseCartesianOptions(
   kind: 'bar' | 'line'
 ): ChartOptions<'bar'> | ChartOptions<'line'> {
   const stacked = isStacked(config.chartType);
+  const horizontal = isHorizontal(config.chartType);
+  const valueAxis = {
+    stacked,
+    beginAtZero: config.beginAtZero,
+    ticks: {
+      color: '#9ba9c8',
+      callback: (v: string | number) => formatEUR(Number(v)),
+    },
+    grid: { display: config.showGrid, color: palette.grid },
+  };
+  const categoryAxis = {
+    stacked,
+    ticks: { color: '#9ba9c8' },
+    grid: { display: false },
+  };
   const opts: ChartOptions<'bar' | 'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: horizontal ? 'y' : 'x',
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: {
@@ -90,27 +115,16 @@ export function baseCartesianOptions(
         padding: 12,
         cornerRadius: 8,
         callbacks: {
-          label: (ctx: TooltipItem<'bar' | 'line'>) =>
-            `${ctx.dataset.label}: ${formatEUR(Number(ctx.parsed.y))}`,
+          label: (ctx: TooltipItem<'bar' | 'line'>) => {
+            const raw = horizontal ? ctx.parsed.x : ctx.parsed.y;
+            return `${ctx.dataset.label}: ${formatEUR(Number(raw))}`;
+          },
         },
       },
     },
-    scales: {
-      x: {
-        stacked,
-        ticks: { color: '#9ba9c8' },
-        grid: { display: false },
-      },
-      y: {
-        stacked,
-        beginAtZero: config.beginAtZero,
-        ticks: {
-          color: '#9ba9c8',
-          callback: (v) => formatEUR(Number(v)),
-        },
-        grid: { display: config.showGrid, color: palette.grid },
-      },
-    },
+    scales: horizontal
+      ? { x: valueAxis, y: categoryAxis }
+      : { x: categoryAxis, y: valueAxis },
   };
   return kind === 'bar'
     ? (opts as ChartOptions<'bar'>)

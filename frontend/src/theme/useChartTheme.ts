@@ -5,8 +5,11 @@ import type { PaletteId } from './palettes';
 export type ChartTypeId =
   | 'bar'
   | 'stacked-bar'
+  | 'horizontal-bar'
+  | 'horizontal-bar-stacked'
   | 'line'
   | 'area'
+  | 'step-line'
   | 'doughnut'
   | 'pie'
   | 'polarArea'
@@ -26,6 +29,7 @@ export type ChartConfig = {
   fill: boolean;
   beginAtZero: boolean;
   showDataLabels: boolean;
+  customColors: (string | null)[];
   title?: string;
   subtitle?: string;
 };
@@ -40,6 +44,7 @@ export const defaultChartConfig: ChartConfig = {
   fill: true,
   beginAtZero: true,
   showDataLabels: false,
+  customColors: [],
 };
 
 type ThemeState = {

@@ -1,7 +1,7 @@
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
-import Profitability from './pages/Profitability';
-import Liquidity from './pages/Liquidity';
+import ChartDetailPage from './pages/ChartDetailPage';
+import ChartsMenu from './components/ChartsMenu';
 
 export default function App() {
   return (
@@ -13,16 +13,16 @@ export default function App() {
         </div>
         <nav className="app-nav">
           <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/profitability">Profitability</NavLink>
-          <NavLink to="/liquidity">Liquidity</NavLink>
+          <ChartsMenu />
         </nav>
       </header>
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profitability" element={<Profitability />} />
-          <Route path="/liquidity" element={<Liquidity />} />
+          <Route path="/chart/:slug" element={<ChartDetailPage />} />
+          <Route path="/profitability" element={<Navigate to="/chart/profitability" replace />} />
+          <Route path="/liquidity" element={<Navigate to="/chart/liquidity" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>

@@ -114,6 +114,16 @@ export function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export function seriesColor(palette: Palette, index: number): string {
+export function seriesColor(
+  palette: Palette,
+  index: number,
+  overrides?: (string | null)[]
+): string {
+  const override = overrides?.[index];
+  if (override && /^#[0-9a-fA-F]{3,8}$/.test(override)) return override;
   return palette.series[index % palette.series.length];
+}
+
+export function isValidHex(value: string): boolean {
+  return /^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$|^#[0-9a-fA-F]{8}$/.test(value);
 }

@@ -1,17 +1,14 @@
+import { Link } from 'react-router-dom';
 import KpiCards from '../components/KpiCards';
-import ProfitabilityChart from '../components/ProfitabilityChart';
-import LiquidityChart from '../components/LiquidityChart';
-import CostStructureChart from '../components/CostStructureChart';
-import WaterfallChart from '../components/WaterfallChart';
-import RevenueMarginChart from '../components/RevenueMarginChart';
-import CashFlowChart from '../components/CashFlowChart';
-import GlobalPaletteSwitcher from '../components/GlobalPaletteSwitcher';
 import DataInput from '../components/DataInput';
+import GlobalPaletteSwitcher from '../components/GlobalPaletteSwitcher';
 import { useDataStore } from '../store/useDataStore';
+import { chartCatalog } from '../components/chartCatalog';
 
 export default function Dashboard() {
   const loadSample = useDataStore((s) => s.loadSample);
   const reset = useDataStore((s) => s.reset);
+  const chartOverrides = useDataStore((s) => s.chartOverrides);
 
   return (
     <div className="page dashboard">
@@ -20,9 +17,9 @@ export default function Dashboard() {
           <h1>Finanz-Dashboard</h1>
           <p className="subtitle">
             Erstelle Rentabilitäts- und Liquiditätsprognosen für deinen Businessplan.
-            Trage deine Daten ein oder importiere eine CSV – die Grafiken aktualisieren
-            sich live. Jeder Chart ist individuell anpassbar und als PNG / CSV / JSON
-            herunterladbar.
+            Öffne einen einzelnen Grafen, um ihm eigene Planungsdaten zuzuweisen,
+            oder passe Farben und Chart-Typen individuell an. Alle Grafiken sind
+            als PNG, CSV oder JSON herunterladbar.
           </p>
         </div>
         <div className="hero-actions">
@@ -38,12 +35,21 @@ export default function Dashboard() {
       <KpiCards />
 
       <div className="chart-grid">
-        <ProfitabilityChart />
-        <LiquidityChart />
-        <RevenueMarginChart />
-        <CashFlowChart />
-        <WaterfallChart />
-        <CostStructureChart />
+        {chartCatalog.map((meta) => {
+          const Component = meta.component;
+          const hasOverride = chartOverrides[meta.id]?.enabled;
+          return (
+            <div key={meta.id} className="chart-slot">
+              <Component />
+              <div className="chart-slot-footer">
+                {hasOverride && <span className="badge-override">eigene Daten</span>}
+                <Link to={`/chart/${meta.slug}`} className="chart-slot-link">
+                  Details & Planung →
+                </Link>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <DataInput />

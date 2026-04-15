@@ -2,7 +2,7 @@ import { useMemo, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
-import { useDataStore } from '../store/useDataStore';
+import { useEffectiveData } from '../store/useDataStore';
 import { computeCashSeries } from '../lib/finance';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
@@ -14,7 +14,7 @@ import {
 } from './chartHelpers';
 import ChartCard from './ChartCard';
 
-const CHART_ID = 'liquidity';
+export const CHART_ID = 'liquidity';
 
 type InnerProps = {
   periods: Period[];
@@ -32,17 +32,16 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
   );
 
   const data = useMemo(() => {
-    const cashColor = seriesColor(palette, 0);
-    const flowColor = seriesColor(palette, 1);
+    const cashColor = seriesColor(palette, 0, config.customColors);
+    const flowColor = seriesColor(palette, 1, config.customColors);
     const cashDataset = buildSeriesDataset({
       label: 'Cash Position',
       data: cashSeries,
       color: cashColor,
       type: config.chartType,
       tension: config.tension,
-      fill: config.fill,
     });
-    if (cjsType === 'line' && config.fill) {
+    if (cjsType === 'line' && config.chartType === 'area') {
       (cashDataset as Record<string, unknown>).backgroundColor = (ctx: {
         chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number } };
       }) => {
@@ -61,7 +60,6 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
       color: flowColor,
       type: config.chartType,
       tension: config.tension,
-      fill: false,
     });
     if (cjsType === 'line') {
       (flowDataset as Record<string, unknown>).borderDash = [6, 4];
@@ -71,7 +69,7 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
       labels: periods.map((p) => p.label),
       datasets: [cashDataset, flowDataset],
     };
-  }, [periods, cashSeries, palette, config.chartType, config.tension, config.fill, cjsType]);
+  }, [periods, cashSeries, palette, config.chartType, config.tension, config.customColors, cjsType]);
 
   const options = baseCartesianOptions(palette, config, cjsType);
 
@@ -86,8 +84,7 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
 }
 
 export default function LiquidityChart() {
-  const startingCash = useDataStore((s) => s.startingCash);
-  const periods = useDataStore((s) => s.periods);
+  const { startingCash, periods } = useEffectiveData(CHART_ID);
 
   const exportRows = () => {
     const cash = computeCashSeries(startingCash, periods);
@@ -105,8 +102,8 @@ export default function LiquidityChart() {
       chartId={CHART_ID}
       title="Liquidity Forecast"
       subtitle="Kassenstand & Netto-Cashflow"
-      defaults={{ chartType: 'area', fill: true, beginAtZero: false }}
-      availableTypes={['line', 'area', 'bar']}
+      defaults={{ chartType: 'area', beginAtZero: false }}
+      availableTypes={['line', 'area', 'step-line', 'bar', 'horizontal-bar']}
       exportRows={exportRows}
     >
       {(args) => (

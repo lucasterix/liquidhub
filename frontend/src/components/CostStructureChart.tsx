@@ -2,7 +2,7 @@ import { useMemo, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
-import { useDataStore } from '../store/useDataStore';
+import { useEffectiveData } from '../store/useDataStore';
 import { formatEUR } from '../lib/finance';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
@@ -10,7 +10,7 @@ import type { Period } from '../types';
 import { radialOptions } from './chartHelpers';
 import ChartCard from './ChartCard';
 
-const CHART_ID = 'cost-structure';
+export const CHART_ID = 'cost-structure';
 
 type InnerProps = {
   periods: Period[];
@@ -30,7 +30,7 @@ function CostStructureInner({ periods, palette, config, chartRef }: InnerProps) 
   const data = useMemo(() => {
     const labels = periods.map((p) => p.label);
     const values = periods.map((p) => p.costs);
-    const colors = values.map((_, i) => seriesColor(palette, i));
+    const colors = values.map((_, i) => seriesColor(palette, i, config.customColors));
     return {
       labels,
       datasets: [
@@ -44,7 +44,7 @@ function CostStructureInner({ periods, palette, config, chartRef }: InnerProps) 
         },
       ],
     };
-  }, [periods, palette]);
+  }, [periods, palette, config.customColors]);
 
   const baseOpts = radialOptions(palette, config);
   const opts = {
@@ -77,7 +77,7 @@ function CostStructureInner({ periods, palette, config, chartRef }: InnerProps) 
 }
 
 export default function CostStructureChart() {
-  const periods = useDataStore((s) => s.periods);
+  const { periods } = useEffectiveData(CHART_ID);
 
   const exportRows = () => {
     const total = periods.reduce((s, p) => s + p.costs, 0) || 1;

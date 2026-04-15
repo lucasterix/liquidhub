@@ -2,14 +2,14 @@ import { useMemo, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS, ChartOptions, TooltipItem } from 'chart.js';
 import './ChartRegistry';
-import { useDataStore } from '../store/useDataStore';
+import { useEffectiveData } from '../store/useDataStore';
 import { formatEUR } from '../lib/finance';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
 import ChartCard from './ChartCard';
 
-const CHART_ID = 'revenue-margin';
+export const CHART_ID = 'revenue-margin';
 
 type InnerProps = {
   periods: Period[];
@@ -20,8 +20,8 @@ type InnerProps = {
 
 function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) {
   const data = useMemo(() => {
-    const revColor = seriesColor(palette, 0);
-    const marginColor = seriesColor(palette, 1);
+    const revColor = seriesColor(palette, 0, config.customColors);
+    const marginColor = seriesColor(palette, 1, config.customColors);
     const margins = periods.map((p) =>
       p.revenue > 0 ? ((p.revenue - p.costs) / p.revenue) * 100 : 0
     );
@@ -58,7 +58,7 @@ function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) 
         },
       ],
     };
-  }, [periods, palette, config.tension]);
+  }, [periods, palette, config.tension, config.customColors]);
 
   const options: ChartOptions<'bar'> = {
     responsive: true,
@@ -115,7 +115,7 @@ function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) 
 }
 
 export default function RevenueMarginChart() {
-  const periods = useDataStore((s) => s.periods);
+  const { periods } = useEffectiveData(CHART_ID);
 
   const exportRows = () =>
     periods.map((p) => ({

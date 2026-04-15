@@ -2,14 +2,14 @@ import { useMemo, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS, ChartOptions, TooltipItem } from 'chart.js';
 import './ChartRegistry';
-import { useDataStore } from '../store/useDataStore';
+import { useEffectiveData } from '../store/useDataStore';
 import { formatEUR } from '../lib/finance';
-import { Palette, hexToRgba } from '../theme/palettes';
+import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
 import ChartCard from './ChartCard';
 
-const CHART_ID = 'waterfall';
+export const CHART_ID = 'waterfall';
 
 type InnerProps = {
   periods: Period[];
@@ -49,9 +49,18 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
   const steps = useMemo(() => buildSteps(periods), [periods]);
 
   const data = useMemo(() => {
+    const totalColor = seriesColor(palette, 0, config.customColors);
+    const posColor =
+      config.customColors?.[1] && /^#[0-9a-fA-F]{3,8}$/.test(config.customColors[1])
+        ? config.customColors[1]
+        : palette.positive;
+    const negColor =
+      config.customColors?.[2] && /^#[0-9a-fA-F]{3,8}$/.test(config.customColors[2])
+        ? config.customColors[2]
+        : palette.negative;
     const colorFor = (s: WaterfallStep) => {
-      if (s.kind === 'total' || s.kind === 'start') return palette.series[0];
-      return s.kind === 'positive' ? palette.positive : palette.negative;
+      if (s.kind === 'total' || s.kind === 'start') return totalColor;
+      return s.kind === 'positive' ? posColor : negColor;
     };
     return {
       labels: steps.map((s) => s.label),
@@ -68,7 +77,7 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
         },
       ],
     };
-  }, [steps, palette]);
+  }, [steps, palette, config.customColors]);
 
   const options: ChartOptions<'bar'> = {
     responsive: true,
@@ -119,7 +128,7 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
 }
 
 export default function WaterfallChart() {
-  const periods = useDataStore((s) => s.periods);
+  const { periods } = useEffectiveData(CHART_ID);
 
   const exportRows = () => {
     const steps = buildSteps(periods);

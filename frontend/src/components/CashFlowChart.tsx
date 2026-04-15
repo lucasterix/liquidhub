@@ -2,17 +2,18 @@ import { useMemo, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
-import { useDataStore } from '../store/useDataStore';
+import { useEffectiveData } from '../store/useDataStore';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
 import {
   baseCartesianOptions,
+  isStacked,
   resolveChartJsType,
 } from './chartHelpers';
 import ChartCard from './ChartCard';
 
-const CHART_ID = 'cash-flow';
+export const CHART_ID = 'cash-flow';
 
 type InnerProps = {
   periods: Period[];
@@ -23,16 +24,20 @@ type InnerProps = {
 
 function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
   const cjsType = resolveChartJsType(config.chartType);
-  const stacked = config.chartType === 'stacked-bar' || config.chartType === 'area';
+  const stacked = isStacked(config.chartType);
 
   const data = useMemo(() => {
-    const inColor = seriesColor(palette, 0);
-    const outColor = seriesColor(palette, 2);
+    const inColor = seriesColor(palette, 0, config.customColors);
+    const outColor = seriesColor(palette, 2, config.customColors);
     const labels = periods.map((p) => p.label);
-    const cashIn = periods.map((p) => p.cashIn);
-    const cashOut = periods.map((p) => -p.cashOut);
     const datasets: Record<string, unknown>[] = [];
     if (cjsType === 'bar') {
+      const cashIn = periods.map((p) => p.cashIn);
+      // When stacked, we want in above / out below the zero line so
+      // the stack keys differ; for non-stacked bar, show raw magnitudes.
+      const cashOut = stacked
+        ? periods.map((p) => -p.cashOut)
+        : periods.map((p) => p.cashOut);
       datasets.push(
         {
           label: 'Cash In',
@@ -54,15 +59,17 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
         }
       );
     } else {
+      const isArea = config.chartType === 'area';
       datasets.push(
         {
           label: 'Cash In',
-          data: cashIn,
+          data: periods.map((p) => p.cashIn),
           borderColor: inColor,
           backgroundColor: hexToRgba(inColor, 0.35),
           borderWidth: 2.5,
-          tension: config.tension,
-          fill: config.chartType === 'area' ? 'origin' : false,
+          tension: config.chartType === 'step-line' ? 0 : config.tension,
+          stepped: config.chartType === 'step-line' ? 'before' : false,
+          fill: isArea ? 'origin' : false,
           pointRadius: 3,
           pointHoverRadius: 5,
           pointBackgroundColor: '#0b1120',
@@ -75,8 +82,9 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
           borderColor: outColor,
           backgroundColor: hexToRgba(outColor, 0.35),
           borderWidth: 2.5,
-          tension: config.tension,
-          fill: config.chartType === 'area' ? 'origin' : false,
+          tension: config.chartType === 'step-line' ? 0 : config.tension,
+          stepped: config.chartType === 'step-line' ? 'before' : false,
+          fill: isArea ? 'origin' : false,
           pointRadius: 3,
           pointHoverRadius: 5,
           pointBackgroundColor: '#0b1120',
@@ -86,14 +94,9 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
       );
     }
     return { labels, datasets };
-  }, [periods, palette, config.chartType, config.tension]);
+  }, [periods, palette, config.chartType, config.tension, config.customColors]);
 
-  const options = baseCartesianOptions(palette, config, cjsType) as Record<string, unknown>;
-  if (stacked && options.scales) {
-    const scales = options.scales as Record<string, Record<string, unknown>>;
-    if (scales.x) scales.x.stacked = true;
-    if (scales.y) scales.y.stacked = true;
-  }
+  const options = baseCartesianOptions(palette, config, cjsType);
 
   return (
     <Chart
@@ -106,7 +109,7 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
 }
 
 export default function CashFlowChart() {
-  const periods = useDataStore((s) => s.periods);
+  const { periods } = useEffectiveData(CHART_ID);
 
   const exportRows = () =>
     periods.map((p) => ({
@@ -122,7 +125,15 @@ export default function CashFlowChart() {
       title="Cash Flow"
       subtitle="Zu- und Abflüsse pro Periode"
       defaults={{ chartType: 'stacked-bar' }}
-      availableTypes={['stacked-bar', 'bar', 'line', 'area']}
+      availableTypes={[
+        'stacked-bar',
+        'bar',
+        'horizontal-bar',
+        'horizontal-bar-stacked',
+        'line',
+        'area',
+        'step-line',
+      ]}
       exportRows={exportRows}
     >
       {(args) => <CashFlowInner periods={periods} {...args} />}

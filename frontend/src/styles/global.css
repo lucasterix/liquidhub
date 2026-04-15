@@ -372,10 +372,13 @@ input:focus {
 /* Chart actions (settings / export buttons in header) */
 
 .chart-actions {
-  position: relative;
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+}
+
+.chart-popover-portal {
+  /* wrapper only; inner .chart-popover handles its own box */
 }
 
 .chart-icon-btn {
@@ -403,12 +406,8 @@ input:focus {
 /* Popover (shared by settings + export) */
 
 .chart-popover {
-  position: absolute;
-  top: 38px;
-  right: 0;
-  z-index: 20;
-  width: 320px;
-  max-height: 520px;
+  width: 340px;
+  max-height: min(80vh, 620px);
   overflow-y: auto;
   background: rgba(14, 20, 36, 0.98);
   border: 1px solid var(--border-hi);
@@ -682,6 +681,305 @@ input:focus {
 .palette-chip-mini.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(110, 168, 255, 0.22);
+}
+
+/* Custom color slots in settings popover */
+
+.color-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.color-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.color-slot-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.color-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.color-slot-row input[type='color'] {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+.color-slot-row input[type='color']::-webkit-color-swatch-wrapper { padding: 2px; }
+.color-slot-row input[type='color']::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.hex-input {
+  flex: 1;
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  padding: 6px 8px;
+  text-transform: lowercase;
+  min-width: 0;
+}
+.chart-icon-btn.small {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+}
+
+/* Charts dropdown menu in header */
+
+.charts-menu {
+  position: relative;
+}
+.charts-menu-trigger {
+  color: var(--text-dim);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.charts-menu-trigger:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+  border: none;
+  transform: none;
+}
+.charts-menu-trigger.active {
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(110, 168, 255, 0.22), rgba(123, 240, 196, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(110, 168, 255, 0.38);
+}
+.charts-menu-trigger .chevron {
+  font-size: 10px;
+  color: var(--text-mute);
+}
+
+.charts-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  min-width: 300px;
+  max-width: 360px;
+  background: rgba(14, 20, 36, 0.98);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(18px);
+  padding: 8px;
+  animation: popover-in 0.14s ease;
+}
+.charts-menu-head {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+  font-weight: 600;
+  padding: 8px 12px 6px;
+}
+.charts-menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  transition: background 0.14s;
+}
+.charts-menu-item:hover {
+  background: rgba(110, 168, 255, 0.12);
+}
+.charts-menu-item strong {
+  font-weight: 600;
+  font-size: 13px;
+}
+.charts-menu-item .dim {
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+/* Chart slot wrapper on dashboard (wraps card + footer link) */
+
+.chart-slot {
+  display: flex;
+  flex-direction: column;
+}
+.chart-slot > .chart-card {
+  flex: 1;
+  margin-bottom: 8px;
+}
+.chart-slot-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+}
+.chart-slot-link {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.12s;
+}
+.chart-slot-link:hover { color: var(--accent); }
+
+.badge-override {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  background: rgba(123, 240, 196, 0.12);
+  color: var(--accent-2);
+  border: 1px solid rgba(123, 240, 196, 0.35);
+}
+
+/* Chart detail page */
+
+.chart-detail .breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-mute);
+  margin-bottom: 6px;
+}
+.chart-detail .breadcrumb a {
+  color: var(--text-dim);
+}
+.chart-detail .breadcrumb a:hover { color: var(--text); }
+.chart-detail .breadcrumb .sep { color: var(--text-mute); }
+
+.chart-grid-single {
+  grid-template-columns: 1fr !important;
+}
+.chart-grid-single > .chart-card,
+.chart-grid-single > .chart-slot > .chart-card {
+  height: 520px;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-hi);
+  color: var(--text);
+  text-decoration: none;
+  font: 500 14px/1 'Inter', system-ui, sans-serif;
+  transition: all 0.18s;
+}
+.button-link:hover {
+  background: rgba(110, 168, 255, 0.12);
+  border-color: rgba(110, 168, 255, 0.55);
+}
+
+.chart-related {
+  margin-top: 32px;
+  padding: 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+}
+.chart-related h3 {
+  margin: 0 0 14px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.chart-related-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.chart-related-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(8, 13, 25, 0.5);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.chart-related-item:hover {
+  border-color: rgba(110, 168, 255, 0.45);
+  background: rgba(110, 168, 255, 0.08);
+  transform: translateY(-1px);
+}
+.chart-related-item strong { font-size: 13px; font-weight: 600; }
+.chart-related-item .dim { font-size: 11px; }
+
+/* Data input: override toggle and disabled fieldset */
+
+.data-input-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  transition: opacity 0.2s;
+}
+.data-input-fieldset:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.data-input-actions .toggle {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hi);
+  font-size: 13px;
+}
+
+button.danger-ghost {
+  background: transparent;
+  border-color: rgba(255, 107, 129, 0.35);
+  color: var(--danger);
+}
+button.danger-ghost:hover:not(:disabled) {
+  background: rgba(255, 107, 129, 0.1);
+  border-color: rgba(255, 107, 129, 0.6);
+}
+button.danger-ghost:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* ============ Data input ============ */
