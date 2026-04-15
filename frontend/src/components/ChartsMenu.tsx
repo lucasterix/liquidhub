@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { chartCatalog } from './chartCatalog';
+import { localizedCatalog } from './chartCatalog';
+import { useT } from '../i18n/translations';
 
 export default function ChartsMenu() {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
+  const t = useT();
+  const catalog = localizedCatalog(t);
 
   useEffect(() => {
     setOpen(false);
@@ -38,13 +41,13 @@ export default function ChartsMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        Grafen
+        {t('nav.charts')}
         <span className="chevron" aria-hidden>{open ? '▴' : '▾'}</span>
       </button>
       {open && (
         <div className="charts-menu-dropdown" role="menu">
-          <div className="charts-menu-head">Alle Grafen</div>
-          {chartCatalog.map((c) => (
+          <div className="charts-menu-head">{t('nav.chartsHead')}</div>
+          {catalog.map((c) => (
             <NavLink
               key={c.slug}
               to={`/chart/${c.slug}`}

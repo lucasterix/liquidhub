@@ -4,6 +4,7 @@ import type { Chart as ChartJS, ChartOptions, TooltipItem } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
 import { formatEUR, useCurrencyCode } from '../lib/finance';
+import { useT } from '../i18n/translations';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -130,6 +131,7 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
 export default function WaterfallChart() {
   const { periods } = useEffectiveData(CHART_ID);
   useCurrencyCode();
+  const t = useT();
 
   const exportRows = () => {
     const steps = buildSteps(periods);
@@ -144,8 +146,8 @@ export default function WaterfallChart() {
   return (
     <ChartCard
       chartId={CHART_ID}
-      title="Profit Waterfall"
-      subtitle="Periodische Beiträge zum Gesamtergebnis"
+      title={t('chart.waterfall.title')}
+      subtitle={t('chart.waterfall.subtitle')}
       defaults={{ chartType: 'waterfall', showLegend: false }}
       exportRows={exportRows}
     >

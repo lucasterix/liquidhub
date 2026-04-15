@@ -1,14 +1,16 @@
 import { paletteList } from '../theme/palettes';
 import { useChartTheme } from '../theme/useChartTheme';
+import { useT } from '../i18n/translations';
 
 export default function GlobalPaletteSwitcher() {
   const globalPalette = useChartTheme((s) => s.globalPalette);
   const setGlobalPalette = useChartTheme((s) => s.setGlobalPalette);
   const resetAll = useChartTheme((s) => s.resetAll);
+  const t = useT();
 
   return (
     <div className="palette-switcher">
-      <span className="palette-switcher-label">Theme</span>
+      <span className="palette-switcher-label">{t('palette.label')}</span>
       <div className="palette-switcher-chips">
         {paletteList.map((p) => (
           <button
@@ -29,9 +31,9 @@ export default function GlobalPaletteSwitcher() {
         type="button"
         className="link-btn"
         onClick={resetAll}
-        title="Alle Chart-Overrides löschen"
+        title={t('palette.resetOverrides')}
       >
-        Reset Overrides
+        {t('palette.resetOverrides')}
       </button>
     </div>
   );

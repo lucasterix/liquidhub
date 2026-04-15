@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { CSV_EXAMPLE, JSON_EXAMPLE } from '../lib/sampleData';
+import { useT } from '../i18n/translations';
 
 type Pos = { top: number; left: number };
 
@@ -22,6 +23,7 @@ export default function ImportFormatHelp() {
   const [pos, setPos] = useState<Pos | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const popRef = useRef<HTMLDivElement | null>(null);
+  const t = useT();
 
   const toggle = useCallback(() => {
     const r = btnRef.current?.getBoundingClientRect();
@@ -66,38 +68,33 @@ export default function ImportFormatHelp() {
     >
       <div className="chart-popover import-help">
         <div className="popover-head">
-          <strong>Import-Format</strong>
+          <strong>{t('help.title')}</strong>
           <button
             type="button"
             className="chart-icon-btn small"
             onClick={() => setOpen(false)}
-            aria-label="Schließen"
+            aria-label="×"
           >
             ×
           </button>
         </div>
         <div className="popover-section">
           <p className="import-help-intro">
-            Planungsdaten können als CSV oder JSON importiert werden. Jede Zeile
-            entspricht einer Periode mit den Feldern <code>label</code>,{' '}
-            <code>revenue</code>, <code>costs</code>, <code>cashIn</code> und{' '}
-            <code>cashOut</code> (alle Beträge als Zahl ohne Währungssymbol).
+            {t('help.intro')} <code>label</code>, <code>revenue</code>,{' '}
+            <code>costs</code>, <code>cashIn</code>, <code>cashOut</code>{' '}
+            {t('help.introSuffix')}
           </p>
         </div>
         <div className="popover-section">
-          <label className="popover-label">CSV-Beispiel</label>
+          <label className="popover-label">{t('help.csvExample')}</label>
           <pre className="code-block">{CSV_EXAMPLE}</pre>
         </div>
         <div className="popover-section">
-          <label className="popover-label">JSON-Beispiel</label>
+          <label className="popover-label">{t('help.jsonExample')}</label>
           <pre className="code-block">{JSON_EXAMPLE}</pre>
         </div>
         <div className="popover-section">
-          <span className="dim">
-            Tipp: Lade dir einen bestehenden Graphen als CSV/JSON herunter
-            (⬇-Icon auf jedem Chart), passe ihn im Editor an und importiere ihn
-            wieder hoch.
-          </span>
+          <span className="dim">{t('help.tip')}</span>
         </div>
       </div>
     </div>
@@ -110,9 +107,9 @@ export default function ImportFormatHelp() {
         ref={btnRef}
         className="help-icon-btn"
         onClick={toggle}
-        aria-label="Import-Format anzeigen"
+        aria-label={t('help.title')}
         aria-expanded={open}
-        title="Welches Format erwartet der Import?"
+        title={t('help.title')}
       >
         ?
       </button>

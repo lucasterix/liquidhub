@@ -3,6 +3,7 @@ import { useDataStore } from '../store/useDataStore';
 import type { Period } from '../types';
 import ImportFormatHelp from './ImportFormatHelp';
 import { generateRandomPeriods } from '../lib/sampleData';
+import { useT } from '../i18n/translations';
 
 function parseCsv(text: string): Period[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
@@ -41,6 +42,7 @@ export default function DataInput() {
     loadSample,
   } = useDataStore();
   const fileRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -72,17 +74,19 @@ export default function DataInput() {
       <div className="data-input-header">
         <div>
           <h3>
-            Planungsdaten
+            {t('data.planning')}
             <ImportFormatHelp />
           </h3>
-          <div className="hint">Label, Umsatz, Kosten, Cash In/Out pro Periode</div>
+          <div className="hint">{t('data.hint')}</div>
         </div>
         <div className="data-input-actions">
-          <button type="button" onClick={loadSample}>Load sample</button>
-          <button type="button" onClick={handleRandomize} title="Realistische Zufallszahlen">
-            🎲 Zufallsdaten
+          <button type="button" onClick={loadSample}>{t('data.loadSample')}</button>
+          <button type="button" onClick={handleRandomize} title={t('data.randomTitle')}>
+            {t('data.random')}
           </button>
-          <button type="button" onClick={() => fileRef.current?.click()}>Import CSV / JSON</button>
+          <button type="button" onClick={() => fileRef.current?.click()}>
+            {t('data.import')}
+          </button>
           <input
             ref={fileRef}
             type="file"
@@ -94,7 +98,7 @@ export default function DataInput() {
       </div>
 
       <label className="starting-cash">
-        Starting cash
+        {t('data.startingCash')}
         <input
           type="number"
           value={startingCash}
@@ -106,11 +110,11 @@ export default function DataInput() {
         <table>
           <thead>
             <tr>
-              <th>Period</th>
-              <th>Revenue</th>
-              <th>Costs</th>
-              <th>Cash In</th>
-              <th>Cash Out</th>
+              <th>{t('data.colPeriod')}</th>
+              <th>{t('data.colRevenue')}</th>
+              <th>{t('data.colCosts')}</th>
+              <th>{t('data.colCashIn')}</th>
+              <th>{t('data.colCashOut')}</th>
               <th></th>
             </tr>
           </thead>
@@ -150,7 +154,7 @@ export default function DataInput() {
         </table>
       </div>
 
-      <button type="button" onClick={addPeriod}>+ Add period</button>
+      <button type="button" onClick={addPeriod}>{t('data.addPeriod')}</button>
     </section>
   );
 }

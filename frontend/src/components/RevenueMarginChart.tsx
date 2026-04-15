@@ -1,24 +1,29 @@
-import { useMemo, MutableRefObject } from 'react';
+import { useMemo, useCallback, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS, ChartOptions, TooltipItem } from 'chart.js';
 import './ChartRegistry';
-import { useEffectiveData } from '../store/useDataStore';
+import { useDataStore, useEffectiveData } from '../store/useDataStore';
 import { formatEUR, useCurrencyCode } from '../lib/finance';
+import { useT } from '../i18n/translations';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
 import ChartCard from './ChartCard';
+import { useChartDragEditor, DragHandler } from './useChartDragEditor';
 
 export const CHART_ID = 'revenue-margin';
+
+type SetRevenue = (dataIndex: number, value: number) => void;
 
 type InnerProps = {
   periods: Period[];
   palette: Palette;
   config: ChartConfig;
   chartRef: MutableRefObject<ChartJS | null>;
+  setRevenue: SetRevenue;
 };
 
-function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) {
+function RevenueMarginInner({ periods, palette, config, chartRef, setRevenue }: InnerProps) {
   const data = useMemo(() => {
     const revColor = seriesColor(palette, 0, config.customColors);
     const marginColor = seriesColor(palette, 1, config.customColors);
@@ -104,6 +109,17 @@ function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) 
     },
   };
 
+  const handlers: Array<DragHandler | null> = useMemo(
+    () => [
+      // Umsatz (bar)
+      (i, v) => setRevenue(i, v),
+      // Marge (%) — derived, not draggable
+      null,
+    ],
+    [setRevenue]
+  );
+  useChartDragEditor(chartRef, handlers);
+
   return (
     <Chart
       ref={chartRef as never}
@@ -115,8 +131,20 @@ function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) 
 }
 
 export default function RevenueMarginChart() {
-  const { periods } = useEffectiveData(CHART_ID);
+  const { periods, isOverridden } = useEffectiveData(CHART_ID);
   useCurrencyCode();
+  const t = useT();
+  const upsertPeriod = useDataStore((s) => s.upsertPeriod);
+  const upsertChartPeriod = useDataStore((s) => s.upsertChartPeriod);
+
+  const setRevenue = useCallback<SetRevenue>(
+    (dataIndex, value) => {
+      const patch: Partial<Period> = { revenue: value };
+      if (isOverridden) upsertChartPeriod(CHART_ID, dataIndex, patch);
+      else upsertPeriod(dataIndex, patch);
+    },
+    [isOverridden, upsertPeriod, upsertChartPeriod]
+  );
 
   const exportRows = () =>
     periods.map((p) => ({
@@ -130,12 +158,12 @@ export default function RevenueMarginChart() {
   return (
     <ChartCard
       chartId={CHART_ID}
-      title="Umsatz & Marge"
-      subtitle="Umsatz pro Periode mit Margen-Linie"
+      title={t('chart.revenueMargin.title')}
+      subtitle={`${t('chart.revenueMargin.subtitle')} (${t('detail.dragHint')})`}
       defaults={{ chartType: 'combo' }}
       exportRows={exportRows}
     >
-      {(args) => <RevenueMarginInner periods={periods} {...args} />}
+      {(args) => <RevenueMarginInner periods={periods} setRevenue={setRevenue} {...args} />}
     </ChartCard>
   );
 }

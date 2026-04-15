@@ -1,30 +1,35 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { findChartBySlug, chartCatalog } from '../components/chartCatalog';
+import { findChartBySlug, localizedCatalog } from '../components/chartCatalog';
 import ChartDataInput from '../components/ChartDataInput';
+import { useT } from '../i18n/translations';
 
 export default function ChartDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const meta = slug ? findChartBySlug(slug) : undefined;
+  const t = useT();
+  const base = slug ? findChartBySlug(slug) : undefined;
 
-  if (!meta) return <Navigate to="/dashboard" replace />;
+  if (!base) return <Navigate to="/dashboard" replace />;
 
-  const ChartComponent = meta.component;
+  const ChartComponent = base.component;
+  const title = t(base.titleKey);
+  const description = t(base.descriptionKey);
+  const catalog = localizedCatalog(t);
 
   return (
     <div className="page chart-detail">
       <section className="page-hero">
         <div>
           <nav className="breadcrumb">
-            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/dashboard">{t('detail.breadcrumbHome')}</Link>
             <span className="sep">›</span>
-            <span>{meta.title}</span>
+            <span>{title}</span>
           </nav>
-          <h1>{meta.title}</h1>
-          <p className="subtitle">{meta.description}</p>
+          <h1>{title}</h1>
+          <p className="subtitle">{description}</p>
         </div>
         <div className="hero-actions">
           <Link to="/dashboard" className="button-link">
-            ← Zurück zur Übersicht
+            {t('detail.back')}
           </Link>
         </div>
       </section>
@@ -33,13 +38,13 @@ export default function ChartDetailPage() {
         <ChartComponent />
       </div>
 
-      <ChartDataInput chartId={meta.id} chartTitle={meta.title} />
+      <ChartDataInput chartId={base.id} chartTitle={title} />
 
       <section className="chart-related">
-        <h3>Weitere Grafen</h3>
+        <h3>{t('detail.related')}</h3>
         <div className="chart-related-list">
-          {chartCatalog
-            .filter((c) => c.slug !== meta.slug)
+          {catalog
+            .filter((c) => c.slug !== base.slug)
             .map((c) => (
               <Link key={c.slug} to={`/chart/${c.slug}`} className="chart-related-item">
                 <strong>{c.title}</strong>

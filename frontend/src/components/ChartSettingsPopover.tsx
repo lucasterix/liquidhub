@@ -6,6 +6,7 @@ import {
   LegendPosition,
   useChartTheme,
 } from '../theme/useChartTheme';
+import { useT } from '../i18n/translations';
 
 const TYPE_LABELS: Record<ChartTypeId, string> = {
   bar: 'Bar',
@@ -33,8 +34,6 @@ type Props = {
   onClose: () => void;
 };
 
-const COLOR_SLOT_LABELS = ['Serie 1', 'Serie 2', 'Serie 3', 'Serie 4', 'Serie 5', 'Serie 6'];
-
 export default function ChartSettingsPopover({
   chartId,
   config,
@@ -45,6 +44,8 @@ export default function ChartSettingsPopover({
   const resetConfig = useChartTheme((s) => s.resetConfig);
   const setGlobalPalette = useChartTheme((s) => s.setGlobalPalette);
   const [hexDrafts, setHexDrafts] = useState<Record<number, string>>({});
+  const t = useT();
+  const COLOR_SLOT_LABELS = [1, 2, 3, 4, 5, 6].map((n) => `${t('settings.series')} ${n}`);
 
   const update = (patch: Partial<ChartConfig>) => setConfig(chartId, patch);
 
@@ -77,16 +78,16 @@ export default function ChartSettingsPopover({
   };
 
   return (
-    <div className="chart-popover" role="dialog" aria-label="Chart-Einstellungen">
+    <div className="chart-popover" role="dialog" aria-label={t('settings.title')}>
       <div className="popover-head">
-        <strong>Anpassen</strong>
-        <button type="button" className="chart-icon-btn" onClick={onClose} aria-label="Schließen">
+        <strong>{t('settings.title')}</strong>
+        <button type="button" className="chart-icon-btn" onClick={onClose} aria-label="×">
           ×
         </button>
       </div>
 
       <div className="popover-section">
-        <label className="popover-label">Farbpalette</label>
+        <label className="popover-label">{t('settings.palette')}</label>
         <div className="palette-grid">
           {paletteList.map((p) => {
             const active = p.id === config.palette;
@@ -112,14 +113,14 @@ export default function ChartSettingsPopover({
           type="button"
           className="link-btn"
           onClick={() => setGlobalPalette(config.palette)}
-          title="Aktive Palette als globalen Standard setzen"
+          title={t('settings.setGlobal')}
         >
-          Als globales Theme setzen
+          {t('settings.setGlobal')}
         </button>
       </div>
 
       <div className="popover-section">
-        <label className="popover-label">Eigene Farben (Hex)</label>
+        <label className="popover-label">{t('settings.customColors')}</label>
         <div className="color-slots">
           {COLOR_SLOT_LABELS.map((label, slot) => {
             const override = config.customColors?.[slot] ?? null;
@@ -149,8 +150,8 @@ export default function ChartSettingsPopover({
                       type="button"
                       className="chart-icon-btn small"
                       onClick={() => clearCustomColor(slot)}
-                      title="Zurücksetzen"
-                      aria-label="Zurücksetzen"
+                      title={t('settings.reset')}
+                      aria-label={t('settings.reset')}
                     >
                       ↺
                     </button>
@@ -162,14 +163,14 @@ export default function ChartSettingsPopover({
         </div>
         {config.customColors && config.customColors.some((c) => c) && (
           <button type="button" className="link-btn" onClick={clearAllCustom}>
-            Alle eigenen Farben entfernen
+            {t('settings.removeAllCustom')}
           </button>
         )}
       </div>
 
       {availableTypes && availableTypes.length > 1 && (
         <div className="popover-section">
-          <label className="popover-label">Chart-Typ</label>
+          <label className="popover-label">{t('settings.chartType')}</label>
           <div className="type-grid">
             {availableTypes.map((t) => (
               <button
@@ -186,7 +187,7 @@ export default function ChartSettingsPopover({
       )}
 
       <div className="popover-section">
-        <label className="popover-label">Darstellung</label>
+        <label className="popover-label">{t('settings.appearance')}</label>
         <div className="toggle-row">
           <label className="toggle">
             <input
@@ -194,7 +195,7 @@ export default function ChartSettingsPopover({
               checked={config.showLegend}
               onChange={(e) => update({ showLegend: e.target.checked })}
             />
-            <span>Legende</span>
+            <span>{t('settings.toggleLegend')}</span>
           </label>
           <label className="toggle">
             <input
@@ -202,7 +203,7 @@ export default function ChartSettingsPopover({
               checked={config.showGrid}
               onChange={(e) => update({ showGrid: e.target.checked })}
             />
-            <span>Gitter</span>
+            <span>{t('settings.toggleGrid')}</span>
           </label>
           <label className="toggle">
             <input
@@ -210,14 +211,14 @@ export default function ChartSettingsPopover({
               checked={config.beginAtZero}
               onChange={(e) => update({ beginAtZero: e.target.checked })}
             />
-            <span>Y bei 0</span>
+            <span>{t('settings.toggleYZero')}</span>
           </label>
         </div>
       </div>
 
       {config.showLegend && (
         <div className="popover-section">
-          <label className="popover-label">Legenden-Position</label>
+          <label className="popover-label">{t('settings.legendPosition')}</label>
           <div className="type-grid">
             {LEGEND_POSITIONS.map((pos) => (
               <button
@@ -235,7 +236,7 @@ export default function ChartSettingsPopover({
 
       <div className="popover-section">
         <label className="popover-label">
-          Linien-Smoothing <span className="dim">{config.tension.toFixed(2)}</span>
+          {t('settings.smoothing')} <span className="dim">{config.tension.toFixed(2)}</span>
         </label>
         <input
           type="range"
@@ -248,17 +249,17 @@ export default function ChartSettingsPopover({
       </div>
 
       <div className="popover-section">
-        <label className="popover-label">Titel</label>
+        <label className="popover-label">{t('settings.titleLabel')}</label>
         <input
           type="text"
           value={config.title ?? ''}
-          placeholder="Standard-Titel verwenden"
+          placeholder={t('settings.titlePlaceholder')}
           onChange={(e) => update({ title: e.target.value || undefined })}
         />
         <input
           type="text"
           value={config.subtitle ?? ''}
-          placeholder="Untertitel"
+          placeholder={t('settings.subtitlePlaceholder')}
           onChange={(e) => update({ subtitle: e.target.value || undefined })}
         />
       </div>
@@ -273,7 +274,7 @@ export default function ChartSettingsPopover({
             onClose();
           }}
         >
-          Auf Standard zurücksetzen
+          {t('settings.resetDefault')}
         </button>
         <span className="dim">
           {palettes[config.palette].name} · {TYPE_LABELS[config.chartType] ?? config.chartType}

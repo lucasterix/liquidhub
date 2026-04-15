@@ -1,6 +1,7 @@
-import { MutableRefObject } from 'react';
+import { MutableRefObject, useState } from 'react';
 import type { Chart as ChartJS } from 'chart.js';
 import type { ExportRow } from './ChartCard';
+import { useT } from '../i18n/translations';
 
 type Props = {
   chartRef: MutableRefObject<ChartJS | null>;
@@ -46,10 +47,12 @@ function rowsToCsv(rows: ExportRow[]): string {
 
 export default function ChartExportMenu({ chartRef, title, exportRows, onClose }: Props) {
   const base = sanitizeFilename(title);
+  const [transparent, setTransparent] = useState(false);
+  const t = useT();
 
-  const exportPng = (scale: number) => {
+  const renderCanvas = (scale: number): HTMLCanvasElement | null => {
     const chart = chartRef.current;
-    if (!chart) return;
+    if (!chart) return null;
     const canvas = chart.canvas;
     const w = canvas.width;
     const h = canvas.height;
@@ -57,13 +60,25 @@ export default function ChartExportMenu({ chartRef, title, exportRows, onClose }
     off.width = w * scale;
     off.height = h * scale;
     const ctx = off.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) return null;
     ctx.scale(scale, scale);
-    ctx.fillStyle = '#0b1120';
-    ctx.fillRect(0, 0, w, h);
+    if (!transparent) {
+      ctx.fillStyle = '#0b1120';
+      ctx.fillRect(0, 0, w, h);
+    }
     ctx.drawImage(canvas, 0, 0);
+    return off;
+  };
+
+  const exportPng = (scale: number) => {
+    const off = renderCanvas(scale);
+    if (!off) return;
     off.toBlob((blob) => {
-      if (blob) triggerDownload(blob, `${base}${scale > 1 ? `@${scale}x` : ''}.png`);
+      if (blob) {
+        const suffix = scale > 1 ? `@${scale}x` : '';
+        const bgTag = transparent ? '-transparent' : '';
+        triggerDownload(blob, `${base}${suffix}${bgTag}.png`);
+      }
       onClose();
     }, 'image/png');
   };
@@ -85,11 +100,10 @@ export default function ChartExportMenu({ chartRef, title, exportRows, onClose }
   };
 
   const copyPng = async () => {
-    const chart = chartRef.current;
-    if (!chart) return;
-    const canvas = chart.canvas;
+    const off = renderCanvas(1);
+    if (!off) return;
     await new Promise<void>((resolve) => {
-      canvas.toBlob(async (blob) => {
+      off.toBlob(async (blob) => {
         if (blob && 'clipboard' in navigator && 'write' in navigator.clipboard) {
           try {
             const item = new ClipboardItem({ 'image/png': blob });
@@ -107,27 +121,37 @@ export default function ChartExportMenu({ chartRef, title, exportRows, onClose }
   return (
     <div className="chart-popover export-menu" role="menu">
       <div className="popover-head">
-        <strong>Export</strong>
-        <button type="button" className="chart-icon-btn" onClick={onClose} aria-label="Schließen">
+        <strong>{t('export.title')}</strong>
+        <button type="button" className="chart-icon-btn" onClick={onClose} aria-label="×">
           ×
         </button>
       </div>
+      <div className="popover-section">
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={transparent}
+            onChange={(e) => setTransparent(e.target.checked)}
+          />
+          <span>{t('export.transparent')}</span>
+        </label>
+      </div>
       <div className="export-list">
         <button type="button" className="export-item" onClick={() => exportPng(1)}>
-          <span>PNG</span>
-          <span className="dim">Standard-Auflösung</span>
+          <span>{t('export.png')}</span>
+          <span className="dim">{t('export.pngStandard')}</span>
         </button>
         <button type="button" className="export-item" onClick={() => exportPng(2)}>
-          <span>PNG @2x</span>
-          <span className="dim">Hohe Auflösung</span>
+          <span>{t('export.png2x')}</span>
+          <span className="dim">{t('export.pngHires')}</span>
         </button>
         <button type="button" className="export-item" onClick={() => exportPng(3)}>
-          <span>PNG @3x</span>
-          <span className="dim">Print-Qualität</span>
+          <span>{t('export.png3x')}</span>
+          <span className="dim">{t('export.pngPrint')}</span>
         </button>
         <button type="button" className="export-item" onClick={copyPng}>
-          <span>In Zwischenablage</span>
-          <span className="dim">Als Bild kopieren</span>
+          <span>{t('export.clipboard')}</span>
+          <span className="dim">{t('export.clipboardSub')}</span>
         </button>
         <button
           type="button"
@@ -135,8 +159,8 @@ export default function ChartExportMenu({ chartRef, title, exportRows, onClose }
           onClick={exportCsv}
           disabled={!exportRows}
         >
-          <span>CSV</span>
-          <span className="dim">Rohdaten tabellarisch</span>
+          <span>{t('export.csv')}</span>
+          <span className="dim">{t('export.csvSub')}</span>
         </button>
         <button
           type="button"
@@ -144,8 +168,8 @@ export default function ChartExportMenu({ chartRef, title, exportRows, onClose }
           onClick={exportJson}
           disabled={!exportRows}
         >
-          <span>JSON</span>
-          <span className="dim">Strukturierte Daten</span>
+          <span>{t('export.json')}</span>
+          <span className="dim">{t('export.jsonSub')}</span>
         </button>
       </div>
     </div>

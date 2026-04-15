@@ -4,6 +4,7 @@ import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
 import { formatEUR, useCurrencyCode } from '../lib/finance';
+import { useT } from '../i18n/translations';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -79,6 +80,7 @@ function CostStructureInner({ periods, palette, config, chartRef }: InnerProps) 
 export default function CostStructureChart() {
   const { periods } = useEffectiveData(CHART_ID);
   useCurrencyCode();
+  const t = useT();
 
   const exportRows = () => {
     const total = periods.reduce((s, p) => s + p.costs, 0) || 1;
@@ -92,8 +94,8 @@ export default function CostStructureChart() {
   return (
     <ChartCard
       chartId={CHART_ID}
-      title="Kostenverteilung"
-      subtitle="Anteil der Kosten pro Periode"
+      title={t('chart.costStructure.title')}
+      subtitle={t('chart.costStructure.subtitle')}
       defaults={{ chartType: 'doughnut', legendPosition: 'right' }}
       availableTypes={['doughnut', 'pie', 'polarArea']}
       exportRows={exportRows}

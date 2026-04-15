@@ -1,12 +1,13 @@
+import { useT } from '../i18n/translations';
+
 export default function Impressum() {
+  const t = useT();
   return (
     <div className="page legal-page">
       <section className="page-hero">
         <div>
-          <h1>Impressum</h1>
-          <p className="subtitle">
-            Angaben gemäß § 5 TMG und § 55 Abs. 2 RStV.
-          </p>
+          <h1>{t('imp.title')}</h1>
+          <p className="subtitle">{t('imp.subtitle')}</p>
         </div>
       </section>
 

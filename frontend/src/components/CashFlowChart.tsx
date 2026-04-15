@@ -1,9 +1,10 @@
-import { useMemo, MutableRefObject } from 'react';
+import { useMemo, useCallback, MutableRefObject } from 'react';
 import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
-import { useEffectiveData } from '../store/useDataStore';
+import { useDataStore, useEffectiveData } from '../store/useDataStore';
 import { useCurrencyCode } from '../lib/finance';
+import { useT } from '../i18n/translations';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -13,17 +14,21 @@ import {
   resolveChartJsType,
 } from './chartHelpers';
 import ChartCard from './ChartCard';
+import { useChartDragEditor, DragHandler } from './useChartDragEditor';
 
 export const CHART_ID = 'cash-flow';
+
+type SetField = (dataIndex: number, field: 'cashIn' | 'cashOut', value: number) => void;
 
 type InnerProps = {
   periods: Period[];
   palette: Palette;
   config: ChartConfig;
   chartRef: MutableRefObject<ChartJS | null>;
+  setField: SetField;
 };
 
-function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
+function CashFlowInner({ periods, palette, config, chartRef, setField }: InnerProps) {
   const cjsType = resolveChartJsType(config.chartType);
   const stacked = isStacked(config.chartType);
 
@@ -34,8 +39,6 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
     const datasets: Record<string, unknown>[] = [];
     if (cjsType === 'bar') {
       const cashIn = periods.map((p) => p.cashIn);
-      // When stacked, we want in above / out below the zero line so
-      // the stack keys differ; for non-stacked bar, show raw magnitudes.
       const cashOut = stacked
         ? periods.map((p) => -p.cashOut)
         : periods.map((p) => p.cashOut);
@@ -95,7 +98,18 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
       );
     }
     return { labels, datasets };
-  }, [periods, palette, config.chartType, config.tension, config.customColors]);
+  }, [periods, palette, config.chartType, config.tension, config.customColors, stacked, cjsType]);
+
+  const handlers: Array<DragHandler | null> = useMemo(() => {
+    return [
+      // Cash In
+      (i, v) => setField(i, 'cashIn', v),
+      // Cash Out — store is positive, bar shows negative in stacked mode
+      (i, v) => setField(i, 'cashOut', stacked ? Math.abs(v) : v),
+    ];
+  }, [stacked, setField]);
+
+  useChartDragEditor(chartRef, handlers);
 
   const options = baseCartesianOptions(palette, config, cjsType);
 
@@ -110,8 +124,20 @@ function CashFlowInner({ periods, palette, config, chartRef }: InnerProps) {
 }
 
 export default function CashFlowChart() {
-  const { periods } = useEffectiveData(CHART_ID);
+  const { periods, isOverridden } = useEffectiveData(CHART_ID);
   useCurrencyCode();
+  const t = useT();
+  const upsertPeriod = useDataStore((s) => s.upsertPeriod);
+  const upsertChartPeriod = useDataStore((s) => s.upsertChartPeriod);
+
+  const setField = useCallback<SetField>(
+    (dataIndex, field, value) => {
+      const patch = { [field]: value } as Partial<Period>;
+      if (isOverridden) upsertChartPeriod(CHART_ID, dataIndex, patch);
+      else upsertPeriod(dataIndex, patch);
+    },
+    [isOverridden, upsertPeriod, upsertChartPeriod]
+  );
 
   const exportRows = () =>
     periods.map((p) => ({
@@ -124,8 +150,8 @@ export default function CashFlowChart() {
   return (
     <ChartCard
       chartId={CHART_ID}
-      title="Cash Flow"
-      subtitle="Zu- und Abflüsse pro Periode"
+      title={t('chart.cashFlow.title')}
+      subtitle={`${t('chart.cashFlow.subtitle')} (${t('detail.dragHint')})`}
       defaults={{ chartType: 'stacked-bar' }}
       availableTypes={[
         'stacked-bar',
@@ -138,7 +164,7 @@ export default function CashFlowChart() {
       ]}
       exportRows={exportRows}
     >
-      {(args) => <CashFlowInner periods={periods} {...args} />}
+      {(args) => <CashFlowInner periods={periods} setField={setField} {...args} />}
     </ChartCard>
   );
 }

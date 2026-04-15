@@ -6,79 +6,81 @@ import CashFlowChart from './CashFlowChart';
 import WaterfallChart from './WaterfallChart';
 import CostStructureChart from './CostStructureChart';
 
-export type ChartMeta = {
+export type ChartMetaBase = {
   id: string;
   slug: string;
+  titleKey: string;
+  subtitleKey: string;
+  descriptionKey: string;
+  component: ComponentType;
+};
+
+export type ChartMeta = ChartMetaBase & {
   title: string;
   subtitle: string;
   description: string;
-  component: ComponentType;
-  seriesLabels: string[];
 };
 
-export const chartCatalog: ChartMeta[] = [
+export const chartCatalog: ChartMetaBase[] = [
   {
     id: 'profitability',
     slug: 'profitability',
-    title: 'Profitability Forecast',
-    subtitle: 'Umsatz, Kosten und Gewinn pro Periode',
-    description:
-      'Vergleicht Erlöse und Kosten Periode für Periode. Stacked- und Horizontal-Modus zeigen die Zusammensetzung der Kosten zum Erlös.',
+    titleKey: 'chart.profitability.title',
+    subtitleKey: 'chart.profitability.subtitle',
+    descriptionKey: 'chart.profitability.description',
     component: ProfitabilityChart,
-    seriesLabels: ['Umsatz', 'Kosten', 'Gewinn'],
   },
   {
     id: 'liquidity',
     slug: 'liquidity',
-    title: 'Liquidity Forecast',
-    subtitle: 'Kassenstand & Netto-Cashflow',
-    description:
-      'Projiziert den Kassenstand anhand von Cash-In/Out. Area-Modus macht die Entwicklung sofort sichtbar.',
+    titleKey: 'chart.liquidity.title',
+    subtitleKey: 'chart.liquidity.subtitle',
+    descriptionKey: 'chart.liquidity.description',
     component: LiquidityChart,
-    seriesLabels: ['Cash Position', 'Net Cash Flow'],
   },
   {
     id: 'revenue-margin',
     slug: 'revenue-margin',
-    title: 'Umsatz & Marge',
-    subtitle: 'Umsatz pro Periode mit Margen-Linie',
-    description:
-      'Kombiniert absolute Umsätze mit relativer Marge auf zwei Y-Achsen. Ideal für Kennzahlen-Reviews.',
+    titleKey: 'chart.revenueMargin.title',
+    subtitleKey: 'chart.revenueMargin.subtitle',
+    descriptionKey: 'chart.revenueMargin.description',
     component: RevenueMarginChart,
-    seriesLabels: ['Umsatz', 'Marge (%)'],
   },
   {
     id: 'cash-flow',
     slug: 'cash-flow',
-    title: 'Cash Flow',
-    subtitle: 'Zu- und Abflüsse pro Periode',
-    description:
-      'Zeigt Cash-In vs. Cash-Out pro Periode — wahlweise gestapelt, nebeneinander oder als Area.',
+    titleKey: 'chart.cashFlow.title',
+    subtitleKey: 'chart.cashFlow.subtitle',
+    descriptionKey: 'chart.cashFlow.description',
     component: CashFlowChart,
-    seriesLabels: ['Cash In', 'Cash Out'],
   },
   {
     id: 'waterfall',
     slug: 'waterfall',
-    title: 'Profit Waterfall',
-    subtitle: 'Periodische Beiträge zum Gesamtergebnis',
-    description:
-      'Zeigt, wie sich jede Periode zum kumulierten Gewinn addiert. Positive Schritte grün, negative rot.',
+    titleKey: 'chart.waterfall.title',
+    subtitleKey: 'chart.waterfall.subtitle',
+    descriptionKey: 'chart.waterfall.description',
     component: WaterfallChart,
-    seriesLabels: ['Gewinn-Schritt'],
   },
   {
     id: 'cost-structure',
     slug: 'cost-structure',
-    title: 'Kostenverteilung',
-    subtitle: 'Anteil der Kosten pro Periode',
-    description:
-      'Visualisiert die prozentuale Verteilung der Gesamtkosten auf die einzelnen Perioden.',
+    titleKey: 'chart.costStructure.title',
+    subtitleKey: 'chart.costStructure.subtitle',
+    descriptionKey: 'chart.costStructure.description',
     component: CostStructureChart,
-    seriesLabels: ['Kosten je Periode'],
   },
 ];
 
-export function findChartBySlug(slug: string): ChartMeta | undefined {
+export function findChartBySlug(slug: string): ChartMetaBase | undefined {
   return chartCatalog.find((c) => c.slug === slug);
+}
+
+export function localizedCatalog(t: (k: string) => string): ChartMeta[] {
+  return chartCatalog.map((c) => ({
+    ...c,
+    title: t(c.titleKey),
+    subtitle: t(c.subtitleKey),
+    description: t(c.descriptionKey),
+  }));
 }

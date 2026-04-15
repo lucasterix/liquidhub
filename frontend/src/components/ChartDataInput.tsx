@@ -3,6 +3,7 @@ import { useDataStore, useEffectiveData } from '../store/useDataStore';
 import type { Period } from '../types';
 import ImportFormatHelp from './ImportFormatHelp';
 import { generateRandomPeriods } from '../lib/sampleData';
+import { useT } from '../i18n/translations';
 
 function parseCsv(text: string): Period[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
@@ -46,6 +47,7 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
   const removeChartPeriod = useDataStore((s) => s.removeChartPeriod);
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   const ensureOverride = () => {
     if (!isOverridden) enableChartOverride(chartId);
@@ -83,14 +85,10 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
       <div className="data-input-header">
         <div>
           <h3>
-            Planungsdaten — {chartTitle}
+            {t('data.planning')} — {chartTitle}
             <ImportFormatHelp />
           </h3>
-          <div className="hint">
-            {isOverridden
-              ? 'Dieser Graf nutzt eigene Planungsdaten. Änderungen wirken nur hier.'
-              : 'Aktuell werden die globalen Planungsdaten verwendet. Aktiviere den Override, um eigene Daten zu hinterlegen.'}
-          </div>
+          <div className="hint">{isOverridden ? t('data.usesOwn') : t('data.usesGlobal')}</div>
         </div>
         <div className="data-input-actions">
           <label className="toggle">
@@ -102,14 +100,10 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
                 else disableChartOverride(chartId);
               }}
             />
-            <span>Eigene Daten</span>
+            <span>{t('data.ownDataToggle')}</span>
           </label>
-          <button
-            type="button"
-            onClick={handleRandomize}
-            title="Realistische Zufallszahlen generieren"
-          >
-            🎲 Zufallsdaten
+          <button type="button" onClick={handleRandomize} title={t('data.randomTitle')}>
+            {t('data.random')}
           </button>
           <button
             type="button"
@@ -118,16 +112,16 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
               fileRef.current?.click();
             }}
           >
-            Import CSV / JSON
+            {t('data.import')}
           </button>
           <button
             type="button"
             className="danger-ghost"
             onClick={() => resetChartOverride(chartId)}
             disabled={!isOverridden}
-            title="Override löschen und globale Daten verwenden"
+            title={t('data.removeOverrideTitle')}
           >
-            Override entfernen
+            {t('data.removeOverride')}
           </button>
           <input
             ref={fileRef}
@@ -141,7 +135,7 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
 
       <fieldset className="data-input-fieldset" disabled={!isOverridden}>
         <label className="starting-cash">
-          Starting cash
+          {t('data.startingCash')}
           <input
             type="number"
             value={startingCash}
@@ -153,11 +147,11 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
           <table>
             <thead>
               <tr>
-                <th>Period</th>
-                <th>Revenue</th>
-                <th>Costs</th>
-                <th>Cash In</th>
-                <th>Cash Out</th>
+                <th>{t('data.colPeriod')}</th>
+                <th>{t('data.colRevenue')}</th>
+                <th>{t('data.colCosts')}</th>
+                <th>{t('data.colCashIn')}</th>
+                <th>{t('data.colCashOut')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -200,7 +194,7 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
         </div>
 
         <button type="button" onClick={() => addChartPeriod(chartId)}>
-          + Add period
+          {t('data.addPeriod')}
         </button>
       </fieldset>
     </section>

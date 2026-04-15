@@ -4,6 +4,7 @@ import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
 import { computeCashSeries, useCurrencyCode } from '../lib/finance';
+import { useT } from '../i18n/translations';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -86,6 +87,7 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
 export default function LiquidityChart() {
   const { startingCash, periods } = useEffectiveData(CHART_ID);
   useCurrencyCode();
+  const t = useT();
 
   const exportRows = () => {
     const cash = computeCashSeries(startingCash, periods);
@@ -101,8 +103,8 @@ export default function LiquidityChart() {
   return (
     <ChartCard
       chartId={CHART_ID}
-      title="Liquidity Forecast"
-      subtitle="Kassenstand & Netto-Cashflow"
+      title={t('chart.liquidity.title')}
+      subtitle={t('chart.liquidity.subtitle')}
       defaults={{ chartType: 'area', beginAtZero: false }}
       availableTypes={['line', 'area', 'step-line', 'bar', 'horizontal-bar']}
       exportRows={exportRows}

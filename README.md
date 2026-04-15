@@ -43,6 +43,9 @@ by [PEBS gUG](https://pebs.eu))
 | **Import** | CSV & JSON drag-drop with inline format help |
 | **Accessible UX** | Portalled popovers (z-index & scroll-inside safe), full keyboard close (Esc), click-outside, responsive grid |
 | **SEO / a11y** | JSON-LD structured data (`WebApplication` + `FAQPage`), Open Graph, FAQ section, semantic HTML |
+| **i18n** | Full German / English UI switch via a header toggle, persisted per browser; the `<html lang>` attribute updates reactively |
+| **Transparent export** | Optional transparent-background PNG export for slide decks and reports |
+| **Drag-to-edit** | Click and drag any bar or combo-chart data point directly on the canvas to change the underlying planning data — writes straight to the store |
 
 ## Screenshots
 
@@ -155,6 +158,46 @@ npm run dev
 # Full stack in Docker
 docker compose up -d --build
 ```
+
+## Recent changes
+
+Short, reverse-chronological changelog of the most visible updates.
+See `git log --oneline` for the full history.
+
+- **Drag-to-edit data points.** Mouse-drag (or touch-drag) any bar or
+  combo-chart point to rewrite the underlying planning value in the
+  Zustand store. A small `useChartDragEditor` hook attaches
+  `mousedown`/`mousemove`/`mouseup` to the canvas, pixel-to-value
+  conversion runs through Chart.js' active scale, and writes snap to
+  the nearest 50.
+- **Transparent PNG export.** Export menu now carries a
+  *Transparent background* toggle; when on, the offscreen compositor
+  skips the dark backdrop and produces a clean PNG suitable for
+  decks with their own background.
+- **German / English UI.** A minimal i18n layer (`i18n/translations.ts` +
+  `useLanguage` Zustand store) covers every visible string across the
+  dashboard, chart cards, settings popover, export menu, data input,
+  chart detail page, Impressum, FAQ, and About section. A header
+  language chip toggles between DE and EN, persists the choice, and
+  updates `document.documentElement.lang` reactively.
+- **Legal / SEO.** Added `/impressum` with the full PEBS gUG legal
+  notice, SEO metadata in `index.html` (title, description, Open
+  Graph, Twitter card, canonical), two JSON-LD schemas
+  (`WebApplication` + `FAQPage`), an SVG favicon, an About section,
+  and a collapsible FAQ with schema.org microdata.
+- **Currency support.** Thirteen currencies wired through a
+  `useCurrencyCode` hook so every axis label, tooltip, and KPI
+  re-renders when the user switches. `formatEUR` reads the selected
+  code at call time via `Intl.NumberFormat` with the native locale.
+- **Sample data generator.** A *Zufallsdaten / Random data* button
+  pulls from five scenario templates (small SaaS, growth startup,
+  scaling agency, early stage, contracting) and jitters every number
+  into realistic noise, rounded to the nearest 500.
+- **Pull-based deploy.** Previous SSH-based GitHub Actions deploys
+  had been silently failing since the very first run. Replaced with a
+  systemd timer on the server that polls `origin/main` every 60 s and
+  rebuilds via a lock-file-guarded `self-update.sh` script. CI now
+  only compiles, deployment lives on the server.
 
 ## Engineering notes
 

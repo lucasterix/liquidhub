@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useDataStore } from '../store/useDataStore';
 import { computeKpis, formatEUR, useCurrencyCode } from '../lib/finance';
+import { useT } from '../i18n/translations';
 
 type Card = {
   label: string;
@@ -13,6 +14,7 @@ type Card = {
 export default function KpiCards() {
   const { startingCash, periods } = useDataStore();
   useCurrencyCode();
+  const t = useT();
   const kpis = useMemo(() => computeKpis(startingCash, periods), [startingCash, periods]);
 
   const profitTrend: 'up' | 'down' = kpis.totalProfit >= 0 ? 'up' : 'down';
@@ -21,36 +23,36 @@ export default function KpiCards() {
 
   const cards: Card[] = [
     {
-      label: 'Total Revenue',
+      label: t('kpi.totalRevenue'),
       value: formatEUR(kpis.totalRevenue),
-      sub: `${periods.length} Perioden`,
+      sub: `${periods.length} ${t('kpi.periods')}`,
     },
     {
-      label: 'Total Costs',
+      label: t('kpi.totalCosts'),
       value: formatEUR(kpis.totalCosts),
-      sub: 'Summe aller Ausgaben',
+      sub: t('kpi.sumAll'),
     },
     {
-      label: 'Gewinn',
+      label: t('kpi.profit'),
       value: formatEUR(kpis.totalProfit),
-      sub: `Marge ${marginPct}`,
+      sub: `${t('kpi.margin')} ${marginPct}`,
       trend: profitTrend,
       badge: profitTrend === 'up' ? `▲ ${marginPct}` : `▼ ${marginPct}`,
     },
     {
-      label: 'Ending Cash',
+      label: t('kpi.endingCash'),
       value: formatEUR(kpis.endingCash),
       sub:
         runwayChange >= 0
-          ? `+${formatEUR(runwayChange)} vs. Start`
-          : `${formatEUR(runwayChange)} vs. Start`,
+          ? `+${formatEUR(runwayChange)} ${t('kpi.vsStart')}`
+          : `${formatEUR(runwayChange)} ${t('kpi.vsStart')}`,
       trend: runwayChange >= 0 ? 'up' : 'down',
       badge: runwayChange >= 0 ? '▲' : '▼',
     },
     {
-      label: 'Liquiditäts-Tief',
+      label: t('kpi.minCash'),
       value: formatEUR(kpis.minCash),
-      sub: kpis.minCash < 0 ? 'Engpass!' : 'im grünen Bereich',
+      sub: kpis.minCash < 0 ? t('kpi.bottleneck') : t('kpi.healthy'),
       trend: kpis.minCash < 0 ? 'down' : 'up',
     },
   ];
