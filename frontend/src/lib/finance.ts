@@ -21,10 +21,17 @@ export function computeKpis(startingCash: number, periods: Period[]): KpiSummary
   return { totalRevenue, totalCosts, totalProfit, margin, endingCash, minCash };
 }
 
+import { formatMoney, useCurrency } from '../store/useCurrency';
+
 export function formatEUR(value: number): string {
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0,
-  }).format(value);
+  // Historic name; now formats with the currently selected currency.
+  return formatMoney(value, useCurrency.getState().code);
+}
+
+// Hook that charts/KPIs call to subscribe to currency changes so
+// Chart.js re-renders axis labels and tooltips when the user picks a
+// different currency. Returns the current code so callers can also
+// list it explicitly in their dependency arrays.
+export function useCurrencyCode() {
+  return useCurrency((s) => s.code);
 }

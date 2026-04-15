@@ -3,7 +3,7 @@ import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS, ChartOptions, TooltipItem } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
-import { formatEUR } from '../lib/finance';
+import { formatEUR, useCurrencyCode } from '../lib/finance';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -129,6 +129,7 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
 
 export default function WaterfallChart() {
   const { periods } = useEffectiveData(CHART_ID);
+  useCurrencyCode();
 
   const exportRows = () => {
     const steps = buildSteps(periods);

@@ -1,6 +1,8 @@
 import { ChangeEvent, useRef } from 'react';
 import { useDataStore } from '../store/useDataStore';
 import type { Period } from '../types';
+import ImportFormatHelp from './ImportFormatHelp';
+import { generateRandomPeriods } from '../lib/sampleData';
 
 function parseCsv(text: string): Period[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
@@ -59,15 +61,27 @@ export default function DataInput() {
     }
   }
 
+  const handleRandomize = () => {
+    const next = generateRandomPeriods(periods.length > 0 ? periods.length : 6);
+    setStartingCash(next.startingCash);
+    setPeriods(next.periods);
+  };
+
   return (
     <section className="data-input">
       <div className="data-input-header">
         <div>
-          <h3>Planungsdaten</h3>
+          <h3>
+            Planungsdaten
+            <ImportFormatHelp />
+          </h3>
           <div className="hint">Label, Umsatz, Kosten, Cash In/Out pro Periode</div>
         </div>
         <div className="data-input-actions">
           <button type="button" onClick={loadSample}>Load sample</button>
+          <button type="button" onClick={handleRandomize} title="Realistische Zufallszahlen">
+            🎲 Zufallsdaten
+          </button>
           <button type="button" onClick={() => fileRef.current?.click()}>Import CSV / JSON</button>
           <input
             ref={fileRef}

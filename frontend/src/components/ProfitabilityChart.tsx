@@ -3,6 +3,7 @@ import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
+import { useCurrencyCode } from '../lib/finance';
 import { Palette, seriesColor } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -101,6 +102,7 @@ function ProfitabilityInner({ periods, palette, config, chartRef }: InnerProps) 
 
 export default function ProfitabilityChart() {
   const { periods } = useEffectiveData(CHART_ID);
+  useCurrencyCode();
 
   const exportRows = () =>
     periods.map((p) => ({

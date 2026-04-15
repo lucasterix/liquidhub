@@ -1,6 +1,8 @@
 import { ChangeEvent, useRef } from 'react';
 import { useDataStore, useEffectiveData } from '../store/useDataStore';
 import type { Period } from '../types';
+import ImportFormatHelp from './ImportFormatHelp';
+import { generateRandomPeriods } from '../lib/sampleData';
 
 function parseCsv(text: string): Period[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
@@ -49,6 +51,13 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
     if (!isOverridden) enableChartOverride(chartId);
   };
 
+  const handleRandomize = () => {
+    ensureOverride();
+    const next = generateRandomPeriods(periods.length > 0 ? periods.length : 6);
+    setChartStartingCash(chartId, next.startingCash);
+    setChartPeriods(chartId, next.periods);
+  };
+
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -73,7 +82,10 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
     <section className="data-input">
       <div className="data-input-header">
         <div>
-          <h3>Planungsdaten — {chartTitle}</h3>
+          <h3>
+            Planungsdaten — {chartTitle}
+            <ImportFormatHelp />
+          </h3>
           <div className="hint">
             {isOverridden
               ? 'Dieser Graf nutzt eigene Planungsdaten. Änderungen wirken nur hier.'
@@ -92,6 +104,13 @@ export default function ChartDataInput({ chartId, chartTitle }: Props) {
             />
             <span>Eigene Daten</span>
           </label>
+          <button
+            type="button"
+            onClick={handleRandomize}
+            title="Realistische Zufallszahlen generieren"
+          >
+            🎲 Zufallsdaten
+          </button>
           <button
             type="button"
             onClick={() => {

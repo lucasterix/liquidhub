@@ -3,7 +3,7 @@ import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
-import { computeCashSeries } from '../lib/finance';
+import { computeCashSeries, useCurrencyCode } from '../lib/finance';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -85,6 +85,7 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
 
 export default function LiquidityChart() {
   const { startingCash, periods } = useEffectiveData(CHART_ID);
+  useCurrencyCode();
 
   const exportRows = () => {
     const cash = computeCashSeries(startingCash, periods);

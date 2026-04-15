@@ -3,7 +3,7 @@ import { Chart } from 'react-chartjs-2';
 import type { Chart as ChartJS, ChartOptions, TooltipItem } from 'chart.js';
 import './ChartRegistry';
 import { useEffectiveData } from '../store/useDataStore';
-import { formatEUR } from '../lib/finance';
+import { formatEUR, useCurrencyCode } from '../lib/finance';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
@@ -116,6 +116,7 @@ function RevenueMarginInner({ periods, palette, config, chartRef }: InnerProps) 
 
 export default function RevenueMarginChart() {
   const { periods } = useEffectiveData(CHART_ID);
+  useCurrencyCode();
 
   const exportRows = () =>
     periods.map((p) => ({

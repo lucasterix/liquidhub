@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useDataStore } from '../store/useDataStore';
-import { computeKpis, formatEUR } from '../lib/finance';
+import { computeKpis, formatEUR, useCurrencyCode } from '../lib/finance';
 
 type Card = {
   label: string;
@@ -12,6 +12,7 @@ type Card = {
 
 export default function KpiCards() {
   const { startingCash, periods } = useDataStore();
+  useCurrencyCode();
   const kpis = useMemo(() => computeKpis(startingCash, periods), [startingCash, periods]);
 
   const profitTrend: 'up' | 'down' = kpis.totalProfit >= 0 ? 'up' : 'down';

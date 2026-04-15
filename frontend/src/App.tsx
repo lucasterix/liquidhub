@@ -2,6 +2,7 @@ import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import ChartDetailPage from './pages/ChartDetailPage';
 import ChartsMenu from './components/ChartsMenu';
+import CurrencySwitcher from './components/CurrencySwitcher';
 
 export default function App() {
   return (
@@ -11,10 +12,13 @@ export default function App() {
           <span className="brand-mark">💰</span>
           <span className="brand-name">LiquidHub</span>
         </div>
-        <nav className="app-nav">
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          <ChartsMenu />
-        </nav>
+        <div className="app-header-right">
+          <nav className="app-nav">
+            <NavLink to="/dashboard">Dashboard</NavLink>
+            <ChartsMenu />
+          </nav>
+          <CurrencySwitcher />
+        </div>
       </header>
       <main className="app-main">
         <Routes>
