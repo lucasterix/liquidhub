@@ -152,14 +152,24 @@ docker-compose up -d
 sudo apt install nginx -y
 ```
 
-### GitHub Actions Auto-Deploy
-The repository includes a GitHub Actions workflow that automatically deploys on every push to main.
+### Auto-Deploy (pull-based)
+Deployment happens automatically on the server via a systemd timer that
+polls `origin/main` every 60 seconds, fast-forwards the working tree, and
+rebuilds the containers through `docker compose`. No SSH secrets or
+GitHub runners are involved in the deploy path — the GitHub Actions
+workflow only compiles the project to catch build regressions early.
 
-**Required Secrets in GitHub:**
-- `SERVER_HOST`: 188.245.172.75
-- `SERVER_USER`: your-server-username
-- `SERVER_SSH_KEY`: SSH private key for server access
-- `SERVER_PORT`: 22 (optional, default)
+**Server-side units** (already installed on production):
+- `/opt/liquidhub/bin/self-update.sh` — idempotent deploy script, lock-file
+  guarded via `flock`, logs build output to `/var/log/liquidhub-build.log`
+- `/etc/systemd/system/liquidhub-self-update.service` — oneshot unit
+- `/etc/systemd/system/liquidhub-self-update.timer` — `OnUnitActiveSec=60s`
+
+Inspect the rollout history with:
+```bash
+journalctl -u liquidhub-self-update.service --since "1 hour ago"
+systemctl list-timers liquidhub-self-update.timer
+```
 
 ## 📊 Features Roadmap
 
