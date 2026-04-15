@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import KpiCards from '../components/KpiCards';
 import DataInput from '../components/DataInput';
 import GlobalPaletteSwitcher from '../components/GlobalPaletteSwitcher';
+import AboutSection from '../components/AboutSection';
+import FaqSection from '../components/FaqSection';
 import { useDataStore } from '../store/useDataStore';
 import { chartCatalog } from '../components/chartCatalog';
 
@@ -53,6 +55,10 @@ export default function Dashboard() {
       </div>
 
       <DataInput />
+
+      <AboutSection />
+
+      <FaqSection />
     </div>
   );
 }

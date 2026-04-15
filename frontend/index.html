@@ -1,15 +1,134 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="LiquidHub — Finanzgrafiken für Businesspläne. Rentabilität & Liquidität auf einen Blick." />
+
+    <title>LiquidHub — Liquiditätsplanung & Finanzprognose für Businesspläne</title>
+    <meta name="description" content="LiquidHub ist ein kostenloses, interaktives Dashboard für Liquiditätsplanung, Rentabilitätsprognose und Cashflow-Forecasts. Ideal für Gründer:innen, Businesspläne, Controlling und Unternehmensberatung. Charts in EUR, USD & 11 weiteren Währungen, exportierbar als PNG, CSV & JSON." />
+    <meta name="keywords" content="Liquiditätsplanung, Liquiditätsvorschau, Cashflow Forecast, Businessplan, Finanzprognose, Rentabilitätsrechnung, Finanzplan Gründer, Liquiditätsplan Excel Alternative, Unternehmensplanung, Controlling Dashboard" />
+    <meta name="author" content="PEBS gUG" />
+    <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0b1120" />
+    <link rel="canonical" href="https://pebs.eu/liquidhub" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LiquidHub — Liquiditätsplanung & Finanzprognose" />
+    <meta property="og:description" content="Interaktives Dashboard für Liquiditätsplanung, Rentabilitätsprognose und Cashflow-Forecasts. Live-Charts, 13 Währungen, Export als PNG/CSV/JSON." />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:site_name" content="LiquidHub" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LiquidHub — Liquiditätsplanung & Finanzprognose" />
+    <meta name="twitter:description" content="Interaktives Dashboard für Liquiditätsplanung, Rentabilitätsprognose und Cashflow-Forecasts." />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>LiquidHub — Financial Dashboard</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "LiquidHub",
+        "description": "Kostenloses Dashboard für Liquiditätsplanung, Rentabilitätsprognose und Cashflow-Forecasts. Ideal für Businesspläne, Gründer:innen und Controlling.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "de",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "PEBS gUG",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Wilhelm-Berg-Straße 2",
+            "postalCode": "37079",
+            "addressLocality": "Göttingen",
+            "addressCountry": "DE"
+          }
+        }
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Was ist eine Liquiditätsplanung?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Eine Liquiditätsplanung ist eine systematische Vorausschau aller erwarteten Ein- und Auszahlungen eines Unternehmens über einen definierten Zeitraum. Sie zeigt, ob ein Unternehmen zu jedem Zeitpunkt zahlungsfähig bleibt, identifiziert Liquiditätslücken frühzeitig und ist Pflichtbestandteil jedes fundierten Businessplans."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Wie erstelle ich eine Cashflow-Prognose für meinen Businessplan?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Eine Cashflow-Prognose entsteht in vier Schritten: 1) Startkapital festlegen, 2) erwartete Einzahlungen pro Periode schätzen (Umsatz, Eigenkapital, Darlehen), 3) Auszahlungen zuordnen (Personal, Material, Miete, Steuern), 4) den kumulierten Kassenstand Periode für Periode fortschreiben. LiquidHub automatisiert die Berechnung und visualisiert das Ergebnis als Linien-, Area- oder Wasserfall-Chart."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Was ist der Unterschied zwischen Rentabilität und Liquidität?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Rentabilität misst den Gewinn im Verhältnis zum Umsatz oder eingesetzten Kapital — sie sagt, ob das Geschäftsmodell wirtschaftlich funktioniert. Liquidität hingegen misst die jederzeitige Zahlungsfähigkeit. Ein Unternehmen kann rentabel sein und trotzdem in eine Liquiditätskrise geraten, wenn Zahlungseingänge zeitlich verzögert sind."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Welche Daten brauche ich für eine Liquiditätsplanung?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Für jede Planungsperiode (meist Monat oder Quartal) benötigen Sie: Label, erwarteter Umsatz, erwartete Kosten, tatsächliche Einzahlungen (Cash In) und Auszahlungen (Cash Out). LiquidHub importiert diese Daten wahlweise als CSV oder JSON und zeigt sofort die resultierenden Grafiken an."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Ist LiquidHub kostenlos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Ja. LiquidHub ist ein kostenfreies Tool der gemeinnützigen PEBS gUG. Es speichert keine Daten auf Servern, alle Eingaben verbleiben im Browser-Speicher (localStorage). Der Export der Grafiken als PNG, CSV oder JSON ist uneingeschränkt möglich."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Kann ich LiquidHub statt Excel für den Finanzplan nutzen?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "LiquidHub ist eine spezialisierte Alternative zu Excel-Vorlagen für Finanzpläne: statt statischer Tabellen erhalten Sie interaktive, live aktualisierte Visualisierungen mit 13 Chart-Typen, individuellen Farbschemen, Multi-Währungs-Unterstützung und Export-Funktionen. Für einfache Gründungs-Businesspläne, Investoren-Pitches und Controlling-Reviews ist das Tool eine vollwertige Alternative."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Welche Chart-Typen unterstützt LiquidHub?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Balkendiagramm, gestapelte Balken, horizontale Balken, horizontale gestapelte Balken, Liniendiagramm, Flächendiagramm, Step-Linie, Kreisdiagramm, Donut, Polar-Area, Wasserfall und Combo-Charts mit zwei Y-Achsen. Jeder Chart-Typ lässt sich einzeln konfigurieren: Farbpalette, eigene Hex-Farben, Achsenbeschriftung, Legendenposition, Titel."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Unterstützt LiquidHub mehrere Währungen?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Ja. Neben Euro werden US-Dollar, Britisches Pfund, Schweizer Franken, Japanischer Yen, Chinesischer Yuan, Schwedische, Norwegische und Dänische Krone, Polnischer Złoty, Tschechische Krone sowie Kanadischer und Australischer Dollar unterstützt. Ein Umschalter im Header wechselt alle Grafiken und KPIs live."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

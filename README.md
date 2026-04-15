@@ -1,211 +1,198 @@
-# LiquidHub 💰
+# LiquidHub
 
-Financial Graphics Dashboard - Create beautiful profitability and liquidity forecasts from business data.
+> Interactive dashboard for liquidity planning, profitability forecasting, and cashflow visualisation — built for founders, consultants, and controllers who need more than an Excel template.
 
-## 🎯 Features
+[![Build & verify](https://github.com/lucasterix/liquidhub/actions/workflows/deploy.yml/badge.svg)](https://github.com/lucasterix/liquidhub/actions)
+![React](https://img.shields.io/badge/React-18-149eca?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178c6?logo=typescript&logoColor=white)
+![Chart.js](https://img.shields.io/badge/Chart.js-4.4-ff6384?logo=chart.js&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646cff?logo=vite&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-compose-2496ed?logo=docker&logoColor=white)
 
-- **Profitability Forecast**: Visualize revenue, costs, and profit trends
-- **Liquidity Dashboard**: Track cash position and liquidity forecasts
-- **Data Input**: Manual entry or CSV/JSON file import
-- **Beautiful Charts**: Interactive, responsive visualizations
-- **Full-Stack App**: React frontend + Node.js backend
+![LiquidHub dashboard](docs/screenshots/dashboard.png)
 
-## 🏗️ Project Structure
+---
+
+## What is it
+
+LiquidHub is a single-page financial dashboard that turns a compact dataset
+(label, revenue, costs, cash-in, cash-out per period) into a full suite of
+live-updating charts. It is the tool I reach for when a client needs a
+liquidity forecast, a rentability projection, or a pitch-deck-ready chart in
+an hour rather than a day.
+
+The entire app is client-side. Planning data is kept in `localStorage`; the
+backend exists only to serve static assets and optional aggregation
+endpoints. Every chart can be themed individually, switched to a different
+chart type on the fly, and exported as PNG, CSV, or JSON.
+
+**Live deployment:** <https://pebs.eu/liquidhub> (hosted on Hetzner, managed
+by [PEBS gUG](https://pebs.eu))
+
+## Feature highlights
+
+| Area | What you get |
+|---|---|
+| **Six core charts** | Profitability, Liquidity forecast, Revenue + Margin combo, Cash-Flow, Profit Waterfall, Cost Structure |
+| **13 chart types** | bar, stacked-bar, horizontal-bar, horizontal-stacked, line, area, step-line, doughnut, pie, polar-area, radar, waterfall, combo |
+| **Theme system** | 8 curated palettes (Ocean, Sunset, Forest, Corporate, Neon, Pastel, Mono, Vibrant) plus per-series custom hex overrides |
+| **Per-chart planning data** | Each chart can optionally use its own dataset; global data acts as a fallback |
+| **13 currencies** | EUR, USD, GBP, CHF, JPY, CNY, SEK, NOK, DKK, PLN, CZK, CAD, AUD — all axes, tooltips, and KPIs re-render live |
+| **Exports** | PNG (1x/2x/3x), clipboard copy, CSV, JSON |
+| **Sample data** | One-click realistic randomised datasets from five business scenarios |
+| **Import** | CSV & JSON drag-drop with inline format help |
+| **Accessible UX** | Portalled popovers (z-index & scroll-inside safe), full keyboard close (Esc), click-outside, responsive grid |
+| **SEO / a11y** | JSON-LD structured data (`WebApplication` + `FAQPage`), Open Graph, FAQ section, semantic HTML |
+
+## Screenshots
+
+| Chart detail page | Settings popover |
+|---|---|
+| ![Chart detail](docs/screenshots/chart-detail.png) | ![Settings popover](docs/screenshots/settings-popover.png) |
+
+| Impressum |
+|---|
+| ![Impressum](docs/screenshots/impressum.png) |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                          Browser (client)                       │
+│                                                                  │
+│  React 18 + TypeScript 5 + Vite 5                                │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Presentation                                             │   │
+│  │    pages/          Dashboard, ChartDetailPage, Impressum  │   │
+│  │    components/     ChartCard, ChartsMenu, FaqSection, …   │   │
+│  │    charts/         6 Chart.js wrappers                    │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  State (Zustand + persist middleware)                     │   │
+│  │    useDataStore     global + per-chart overrides          │   │
+│  │    useChartTheme    per-chart config, palettes, hex       │   │
+│  │    useCurrency      selected currency code                │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ HTTPS
+┌──────────────────────────┴───────────────────────────────────────┐
+│                  Hetzner VPS 188.245.172.75                      │
+│                                                                  │
+│  nginx (host)  →  docker compose                                 │
+│                      │                                           │
+│                      ├── liquidhub-frontend (nginx + dist/)      │
+│                      └── liquidhub-backend  (Express, health)    │
+│                                                                  │
+│  systemd timer  liquidhub-self-update.timer  (every 60 s)        │
+│       │                                                          │
+│       └─ git fetch → rebuild → docker compose up -d              │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## Deploy pipeline
+
+Deployment is **pull-based**. A systemd timer on the server runs every
+60 seconds, checks `origin/main`, and, on a new commit, runs a lock-file
+guarded script that rebuilds and restarts the containers. This removes the
+need for SSH secrets on the CI runner and makes rollbacks a trivial
+`git reset`.
+
+```
+git push → GitHub → (CI build verify) → systemd timer picks up → rebuild → live (<60 s)
+```
+
+GitHub Actions only compiles the project to catch regressions early —
+actual deploy happens on the server.
+
+## Tech stack
+
+- **React 18** + **TypeScript 5**
+- **Vite 5** for dev/build
+- **Chart.js 4.4** + **react-chartjs-2 5** (BarController, LineController, DoughnutController, PieController, PolarAreaController, RadarController, ArcElement, Filler)
+- **Zustand 4** with `persist` middleware (`localStorage`)
+- **React Router 6**
+- **Express 4** (backend health endpoint + optional analysis API)
+- **Docker Compose** orchestration
+- **nginx** host reverse-proxy
+- **systemd** self-update timer
+
+## Project structure
 
 ```
 liquidhub/
-├── frontend/              # React + TypeScript application
-│   ├── src/
-│   │   ├── components/   # Chart and form components
-│   │   ├── pages/        # Dashboard page
-│   │   ├── styles/       # CSS files
-│   │   ├── types/        # TypeScript types
-│   │   ├── App.tsx       # Main app component
-│   │   └── main.tsx      # Entry point
-│   ├── Dockerfile        # Frontend container
-│   ├── nginx.conf        # Nginx configuration
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   └── index.html
-│
-├── backend/               # Node.js/Express API
-│   ├── src/
-│   │   ├── controllers/  # Request handlers
-│   │   ├── routes/       # API routes
-│   │   └── index.ts      # Server setup
-│   ├── Dockerfile        # Backend container
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── .env
-│
-├── .github/workflows/     # GitHub Actions
-│   └── deploy.yml         # Auto-deploy workflow
-├── docker-compose.yml     # Docker orchestration
-├── README.md
-└── .gitignore
+├── frontend/
+│   ├── public/favicon.svg
+│   ├── index.html                 # SEO meta + JSON-LD FAQ schema
+│   └── src/
+│       ├── pages/                 # Dashboard, ChartDetailPage, Impressum
+│       ├── components/            # ChartCard, 6 chart types, menus, popovers
+│       ├── store/                 # Zustand stores (data, theme, currency)
+│       ├── theme/                 # palettes + useChartTheme
+│       ├── lib/                   # finance helpers, sample data generator
+│       ├── styles/global.css
+│       └── types/index.ts
+├── backend/
+│   └── src/                       # Express server, /health, /api/*
+├── docker-compose.yml
+├── .github/workflows/deploy.yml   # CI build verify
+└── docs/screenshots/              # README assets
 ```
 
-## 🚀 Quick Start (Development)
+## Development
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Frontend Setup
 ```bash
+# Frontend (http://localhost:3000)
 cd frontend
 npm install
 npm run dev
-```
-Frontend runs on: http://localhost:3000
 
-### Backend Setup
-```bash
+# Backend (http://localhost:5000)
 cd backend
 npm install
 npm run dev
-```
-Backend runs on: http://localhost:5000
 
-### Build for Production
-```bash
-# Frontend
-cd frontend
-npm run build
-
-# Backend
-cd backend
-npm run build
-npm start
+# Full stack in Docker
+docker compose up -d --build
 ```
 
-## 🌐 Production Deployment
+## Engineering notes
 
-### Option 1: Docker (Recommended)
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
+A few things that turned out to matter more than expected:
 
-# Or build manually
-docker build -t liquidhub-frontend ./frontend
-docker build -t liquidhub-backend ./backend
-docker-compose up -d
-```
+- **Stacking contexts bite.** `backdrop-filter` on the chart card created a
+  stacking context that clipped settings popovers behind the next chart.
+  The fix was portalling them into `document.body` with `position: fixed`
+  and a resize-/scroll-/click-outside guard — and crucially, a scroll
+  listener that **checks the event target** so scrolling *inside* the
+  popover does not dismiss it.
+- **`line` vs `area` must not look the same.** A single "fill" toggle
+  quietly made both chart types identical. The cleaner model is:
+  area always fills, line never fills, drop the toggle.
+- **Stacked bars with distinct `stack` keys are silent bugs.** If every
+  dataset sets a different stack key, Chart.js groups them side-by-side
+  even with `scales.stacked = true`. Revenue ≠ costs + profit when all
+  three are shown on one stack, so the stacked mode of the Profitability
+  chart now drops the revenue series and stacks costs + profit (which
+  mathematically sums to revenue).
+- **Currency re-renders need explicit subscription.** `formatEUR` reads
+  the currency at call time, but Chart.js only re-draws when React
+  passes a new options object. Every chart component subscribes to the
+  currency store (`useCurrencyCode()`) so a switch triggers a re-render
+  and the tooltip/axis callbacks close over the new locale.
 
-### Option 2: Direct Deployment
-```bash
-# Install PM2 globally
-npm install -g pm2
-
-# Deploy backend
-cd backend
-npm ci
-npm run build
-pm2 start dist/index.js --name liquidhub-backend
-
-# Deploy frontend
-cd frontend
-npm ci
-npm run build
-npm run preview
-pm2 start npm --name liquidhub-frontend -- run preview
-```
-
-### DNS Configuration for zdkg.de
-Add these DNS records in your Hetzner DNS console:
-
-```
-Type: A
-Name: @
-Value: 188.245.172.75
-TTL: 3600
-
-Type: A
-Name: www
-Value: 188.245.172.75
-TTL: 3600
-```
-
-### Server Setup (Hetzner)
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Clone repository
-git clone https://github.com/lucasterix/liquidhub.git /opt/liquidhub
-cd /opt/liquidhub
-
-# Start with Docker Compose
-docker-compose up -d
-
-# Install nginx (optional, for reverse proxy)
-sudo apt install nginx -y
-```
-
-### Auto-Deploy (pull-based)
-Deployment happens automatically on the server via a systemd timer that
-polls `origin/main` every 60 seconds, fast-forwards the working tree, and
-rebuilds the containers through `docker compose`. No SSH secrets or
-GitHub runners are involved in the deploy path — the GitHub Actions
-workflow only compiles the project to catch build regressions early.
-
-**Server-side units** (already installed on production):
-- `/opt/liquidhub/bin/self-update.sh` — idempotent deploy script, lock-file
-  guarded via `flock`, logs build output to `/var/log/liquidhub-build.log`
-- `/etc/systemd/system/liquidhub-self-update.service` — oneshot unit
-- `/etc/systemd/system/liquidhub-self-update.timer` — `OnUnitActiveSec=60s`
-
-Inspect the rollout history with:
-```bash
-journalctl -u liquidhub-self-update.service --since "1 hour ago"
-systemctl list-timers liquidhub-self-update.timer
-```
-
-## 📊 Features Roadmap
-
-- [ ] Advanced data import (multiple formats)
-- [ ] Forecast algorithms (linear regression, exponential smoothing)
-- [ ] Export to PDF/PNG
-- [ ] Real-time data sync
-- [ ] User authentication
-- [ ] Data persistence (database)
-- [ ] More chart types (bar, pie, waterfall)
-- [ ] Custom themes
-
-## 🛠️ Technology Stack
-
-**Frontend:**
-- React 18
-- TypeScript
-- Vite
-- Chart.js
-- React Router
-
-**Backend:**
-- Node.js
-- Express
-- TypeScript
-
-**Deployment:**
-- Docker
-- Docker Compose
-- Nginx
-- PM2 (alternative)
-
-## 📝 License
+## License
 
 MIT
 
-## 👤 Author
+## About
 
-Created for financial data visualization# liquidhub
+Built by **Lucas Schmutz** ([@lucasterix](https://github.com/lucasterix)) for
+[PEBS gUG](https://pebs.eu), a non-profit in Göttingen focused on education
+and practical digital tooling. Drop a line at
+[vorstand@pebs.eu](mailto:vorstand@pebs.eu) if you want to talk about
+liquidity planning, consulting, or full-stack engineering.
+
+---
+
+[Impressum](https://pebs.eu/impressum) · [Kontakt](mailto:vorstand@pebs.eu)
