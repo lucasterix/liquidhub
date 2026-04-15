@@ -1,98 +1,99 @@
-import { useMemo } from 'react';
-import { Bar } from 'react-chartjs-2';
-import type { ChartOptions } from 'chart.js';
+import { useMemo, MutableRefObject } from 'react';
+import { Chart } from 'react-chartjs-2';
+import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
 import { useDataStore } from '../store/useDataStore';
-import { formatEUR } from '../lib/finance';
+import { Palette, seriesColor } from '../theme/palettes';
+import { ChartConfig } from '../theme/useChartTheme';
+import type { Period } from '../types';
+import {
+  baseCartesianOptions,
+  buildSeriesDataset,
+  resolveChartJsType,
+} from './chartHelpers';
+import ChartCard from './ChartCard';
 
-export default function ProfitabilityChart() {
-  const { periods } = useDataStore();
+const CHART_ID = 'profitability';
+
+type InnerProps = {
+  periods: Period[];
+  palette: Palette;
+  config: ChartConfig;
+  chartRef: MutableRefObject<ChartJS | null>;
+};
+
+function ProfitabilityInner({ periods, palette, config, chartRef }: InnerProps) {
+  const cjsType = resolveChartJsType(config.chartType);
 
   const data = useMemo(
     () => ({
       labels: periods.map((p) => p.label),
       datasets: [
-        {
+        buildSeriesDataset({
           label: 'Umsatz',
           data: periods.map((p) => p.revenue),
-          backgroundColor: 'rgba(110, 168, 255, 0.85)',
-          borderRadius: 8,
-          borderSkipped: false,
-          maxBarThickness: 28,
-        },
-        {
+          color: seriesColor(palette, 0),
+          type: config.chartType,
+          tension: config.tension,
+          fill: config.fill,
+          stack: 'a',
+        }),
+        buildSeriesDataset({
           label: 'Kosten',
           data: periods.map((p) => p.costs),
-          backgroundColor: 'rgba(255, 107, 129, 0.8)',
-          borderRadius: 8,
-          borderSkipped: false,
-          maxBarThickness: 28,
-        },
-        {
+          color: seriesColor(palette, 2),
+          type: config.chartType,
+          tension: config.tension,
+          fill: config.fill,
+          stack: 'b',
+        }),
+        buildSeriesDataset({
           label: 'Gewinn',
           data: periods.map((p) => p.revenue - p.costs),
-          backgroundColor: 'rgba(123, 240, 196, 0.9)',
-          borderRadius: 8,
-          borderSkipped: false,
-          maxBarThickness: 28,
-        },
+          color: seriesColor(palette, 1),
+          type: config.chartType,
+          tension: config.tension,
+          fill: config.fill,
+          stack: 'c',
+        }),
       ],
     }),
-    [periods]
+    [periods, palette, config.chartType, config.tension, config.fill]
   );
 
-  const options: ChartOptions<'bar'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#9ba9c8',
-          usePointStyle: true,
-          padding: 16,
-          font: { size: 12, weight: 500 },
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(10, 16, 32, 0.95)',
-        titleColor: '#e9eefb',
-        bodyColor: '#9ba9c8',
-        borderColor: 'rgba(110, 168, 255, 0.3)',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 8,
-        callbacks: {
-          label: (ctx) => `${ctx.dataset.label}: ${formatEUR(Number(ctx.parsed.y))}`,
-        },
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: '#9ba9c8' },
-        grid: { display: false },
-      },
-      y: {
-        beginAtZero: true,
-        ticks: {
-          color: '#9ba9c8',
-          callback: (v) => formatEUR(Number(v)),
-        },
-        grid: { color: 'rgba(91, 112, 160, 0.12)' },
-      },
-    },
-  };
+  const options = baseCartesianOptions(palette, config, cjsType);
 
   return (
-    <div className="chart-card">
-      <div className="chart-head">
-        <h3>Profitability Forecast</h3>
-        <span className="chart-sub">Umsatz vs. Kosten pro Periode</span>
-      </div>
-      <div className="chart-canvas">
-        <Bar data={data} options={options} />
-      </div>
-    </div>
+    <Chart
+      ref={chartRef as never}
+      type={cjsType}
+      data={data as never}
+      options={options as never}
+    />
+  );
+}
+
+export default function ProfitabilityChart() {
+  const periods = useDataStore((s) => s.periods);
+
+  const exportRows = () =>
+    periods.map((p) => ({
+      label: p.label,
+      revenue: p.revenue,
+      costs: p.costs,
+      profit: p.revenue - p.costs,
+    }));
+
+  return (
+    <ChartCard
+      chartId={CHART_ID}
+      title="Profitability Forecast"
+      subtitle="Umsatz, Kosten und Gewinn pro Periode"
+      defaults={{ chartType: 'bar' }}
+      availableTypes={['bar', 'stacked-bar', 'line', 'area']}
+      exportRows={exportRows}
+    >
+      {(args) => <ProfitabilityInner periods={periods} {...args} />}
+    </ChartCard>
   );
 }

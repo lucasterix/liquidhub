@@ -1,6 +1,11 @@
 import KpiCards from '../components/KpiCards';
 import ProfitabilityChart from '../components/ProfitabilityChart';
 import LiquidityChart from '../components/LiquidityChart';
+import CostStructureChart from '../components/CostStructureChart';
+import WaterfallChart from '../components/WaterfallChart';
+import RevenueMarginChart from '../components/RevenueMarginChart';
+import CashFlowChart from '../components/CashFlowChart';
+import GlobalPaletteSwitcher from '../components/GlobalPaletteSwitcher';
 import DataInput from '../components/DataInput';
 import { useDataStore } from '../store/useDataStore';
 
@@ -16,7 +21,8 @@ export default function Dashboard() {
           <p className="subtitle">
             Erstelle Rentabilitäts- und Liquiditätsprognosen für deinen Businessplan.
             Trage deine Daten ein oder importiere eine CSV – die Grafiken aktualisieren
-            sich live.
+            sich live. Jeder Chart ist individuell anpassbar und als PNG / CSV / JSON
+            herunterladbar.
           </p>
         </div>
         <div className="hero-actions">
@@ -27,11 +33,17 @@ export default function Dashboard() {
         </div>
       </section>
 
+      <GlobalPaletteSwitcher />
+
       <KpiCards />
 
       <div className="chart-grid">
         <ProfitabilityChart />
         <LiquidityChart />
+        <RevenueMarginChart />
+        <CashFlowChart />
+        <WaterfallChart />
+        <CostStructureChart />
       </div>
 
       <DataInput />

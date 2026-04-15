@@ -1,109 +1,117 @@
-import { useMemo } from 'react';
-import { Line } from 'react-chartjs-2';
-import type { ChartOptions } from 'chart.js';
+import { useMemo, MutableRefObject } from 'react';
+import { Chart } from 'react-chartjs-2';
+import type { Chart as ChartJS } from 'chart.js';
 import './ChartRegistry';
 import { useDataStore } from '../store/useDataStore';
-import { computeCashSeries, formatEUR } from '../lib/finance';
+import { computeCashSeries } from '../lib/finance';
+import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
+import { ChartConfig } from '../theme/useChartTheme';
+import type { Period } from '../types';
+import {
+  baseCartesianOptions,
+  buildSeriesDataset,
+  resolveChartJsType,
+} from './chartHelpers';
+import ChartCard from './ChartCard';
 
-export default function LiquidityChart() {
-  const { startingCash, periods } = useDataStore();
+const CHART_ID = 'liquidity';
+
+type InnerProps = {
+  periods: Period[];
+  startingCash: number;
+  palette: Palette;
+  config: ChartConfig;
+  chartRef: MutableRefObject<ChartJS | null>;
+};
+
+function LiquidityInner({ periods, startingCash, palette, config, chartRef }: InnerProps) {
+  const cjsType = resolveChartJsType(config.chartType);
+  const cashSeries = useMemo(
+    () => computeCashSeries(startingCash, periods),
+    [startingCash, periods]
+  );
 
   const data = useMemo(() => {
-    const cash = computeCashSeries(startingCash, periods);
+    const cashColor = seriesColor(palette, 0);
+    const flowColor = seriesColor(palette, 1);
+    const cashDataset = buildSeriesDataset({
+      label: 'Cash Position',
+      data: cashSeries,
+      color: cashColor,
+      type: config.chartType,
+      tension: config.tension,
+      fill: config.fill,
+    });
+    if (cjsType === 'line' && config.fill) {
+      (cashDataset as Record<string, unknown>).backgroundColor = (ctx: {
+        chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number } };
+      }) => {
+        const chart = ctx.chart;
+        const { ctx: c, chartArea } = chart;
+        if (!chartArea) return hexToRgba(cashColor, 0.2);
+        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, hexToRgba(cashColor, 0.45));
+        g.addColorStop(1, hexToRgba(cashColor, 0.02));
+        return g;
+      };
+    }
+    const flowDataset = buildSeriesDataset({
+      label: 'Net Cash Flow',
+      data: periods.map((p) => p.cashIn - p.cashOut),
+      color: flowColor,
+      type: config.chartType,
+      tension: config.tension,
+      fill: false,
+    });
+    if (cjsType === 'line') {
+      (flowDataset as Record<string, unknown>).borderDash = [6, 4];
+      (flowDataset as Record<string, unknown>).fill = false;
+    }
     return {
       labels: periods.map((p) => p.label),
-      datasets: [
-        {
-          label: 'Cash Position',
-          data: cash,
-          borderColor: 'rgba(110, 168, 255, 1)',
-          backgroundColor: (ctx: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number } } }) => {
-            const chart = ctx.chart;
-            const { ctx: c, chartArea } = chart;
-            if (!chartArea) return 'rgba(110, 168, 255, 0.2)';
-            const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            g.addColorStop(0, 'rgba(110, 168, 255, 0.45)');
-            g.addColorStop(1, 'rgba(110, 168, 255, 0.02)');
-            return g;
-          },
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointBackgroundColor: '#0b1120',
-          pointBorderColor: '#6ea8ff',
-          pointBorderWidth: 2,
-        },
-        {
-          label: 'Net Cash Flow',
-          data: periods.map((p) => p.cashIn - p.cashOut),
-          borderColor: 'rgba(123, 240, 196, 1)',
-          backgroundColor: 'rgba(123, 240, 196, 0.1)',
-          borderWidth: 2,
-          borderDash: [6, 4],
-          tension: 0.35,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          pointBackgroundColor: '#0b1120',
-          pointBorderColor: '#7bf0c4',
-          pointBorderWidth: 2,
-        },
-      ],
+      datasets: [cashDataset, flowDataset],
     };
-  }, [startingCash, periods]);
+  }, [periods, cashSeries, palette, config.chartType, config.tension, config.fill, cjsType]);
 
-  const options: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#9ba9c8',
-          usePointStyle: true,
-          padding: 16,
-          font: { size: 12, weight: 500 },
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(10, 16, 32, 0.95)',
-        titleColor: '#e9eefb',
-        bodyColor: '#9ba9c8',
-        borderColor: 'rgba(110, 168, 255, 0.3)',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 8,
-        callbacks: {
-          label: (ctx) => `${ctx.dataset.label}: ${formatEUR(Number(ctx.parsed.y))}`,
-        },
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: '#9ba9c8' },
-        grid: { display: false },
-      },
-      y: {
-        ticks: {
-          color: '#9ba9c8',
-          callback: (v) => formatEUR(Number(v)),
-        },
-        grid: { color: 'rgba(91, 112, 160, 0.12)' },
-      },
-    },
+  const options = baseCartesianOptions(palette, config, cjsType);
+
+  return (
+    <Chart
+      ref={chartRef as never}
+      type={cjsType}
+      data={data as never}
+      options={options as never}
+    />
+  );
+}
+
+export default function LiquidityChart() {
+  const startingCash = useDataStore((s) => s.startingCash);
+  const periods = useDataStore((s) => s.periods);
+
+  const exportRows = () => {
+    const cash = computeCashSeries(startingCash, periods);
+    return periods.map((p, i) => ({
+      label: p.label,
+      cashIn: p.cashIn,
+      cashOut: p.cashOut,
+      netFlow: p.cashIn - p.cashOut,
+      cashPosition: cash[i],
+    }));
   };
 
   return (
-    <div className="chart-card">
-      <div className="chart-head">
-        <h3>Liquidity Forecast</h3>
-        <span className="chart-sub">Kassenstand & Netto-Cashflow</span>
-      </div>
-      <div className="chart-canvas">
-        <Line data={data} options={options} />
-      </div>
-    </div>
+    <ChartCard
+      chartId={CHART_ID}
+      title="Liquidity Forecast"
+      subtitle="Kassenstand & Netto-Cashflow"
+      defaults={{ chartType: 'area', fill: true, beginAtZero: false }}
+      availableTypes={['line', 'area', 'bar']}
+      exportRows={exportRows}
+    >
+      {(args) => (
+        <LiquidityInner periods={periods} startingCash={startingCash} {...args} />
+      )}
+    </ChartCard>
   );
 }
