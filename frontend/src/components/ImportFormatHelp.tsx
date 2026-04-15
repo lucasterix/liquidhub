@@ -40,16 +40,21 @@ export default function ImportFormatHelp() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
-    const onClose = () => setOpen(false);
+    const onResize = () => setOpen(false);
+    const onScroll = (e: Event) => {
+      const t = e.target as Node | null;
+      if (t && popRef.current?.contains(t)) return;
+      setOpen(false);
+    };
     document.addEventListener('mousedown', onClick);
     document.addEventListener('keydown', onKey);
-    window.addEventListener('resize', onClose);
-    window.addEventListener('scroll', onClose, true);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('scroll', onScroll, true);
     return () => {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
-      window.removeEventListener('resize', onClose);
-      window.removeEventListener('scroll', onClose, true);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onScroll, true);
     };
   }, [open]);
 

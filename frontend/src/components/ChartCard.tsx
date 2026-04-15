@@ -90,15 +90,23 @@ export default function ChartCard({
       if (e.key === 'Escape') setOpenMenu(null);
     };
     const onResize = () => setOpenMenu(null);
+    const onScroll = (e: Event) => {
+      // Ignore scroll events that originate inside the popover itself —
+      // the popover is internally scrollable and we don't want to close
+      // it when the user scrolls its own content.
+      const target = e.target as Node | null;
+      if (target && popoverRef.current?.contains(target)) return;
+      setOpenMenu(null);
+    };
     document.addEventListener('mousedown', onClick);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResize);
-    window.addEventListener('scroll', onResize, true);
+    window.addEventListener('scroll', onScroll, true);
     return () => {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('scroll', onResize, true);
+      window.removeEventListener('scroll', onScroll, true);
     };
   }, [openMenu]);
 
