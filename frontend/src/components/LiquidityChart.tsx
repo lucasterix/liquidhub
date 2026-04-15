@@ -12,6 +12,7 @@ import {
   baseCartesianOptions,
   buildSeriesDataset,
   resolveChartJsType,
+  useUiChartTokens,
 } from './chartHelpers';
 import ChartCard from './ChartCard';
 
@@ -27,6 +28,7 @@ type InnerProps = {
 
 function LiquidityInner({ periods, startingCash, palette, config, chartRef }: InnerProps) {
   const cjsType = resolveChartJsType(config.chartType);
+  const ui = useUiChartTokens();
   const cashSeries = useMemo(
     () => computeCashSeries(startingCash, periods),
     [startingCash, periods]
@@ -41,6 +43,7 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
       color: cashColor,
       type: config.chartType,
       tension: config.tension,
+      pointRing: ui.pointRing,
     });
     if (cjsType === 'line' && config.chartType === 'area') {
       (cashDataset as Record<string, unknown>).backgroundColor = (ctx: {
@@ -61,6 +64,7 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
       color: flowColor,
       type: config.chartType,
       tension: config.tension,
+      pointRing: ui.pointRing,
     });
     if (cjsType === 'line') {
       (flowDataset as Record<string, unknown>).borderDash = [6, 4];
@@ -70,9 +74,9 @@ function LiquidityInner({ periods, startingCash, palette, config, chartRef }: In
       labels: periods.map((p) => p.label),
       datasets: [cashDataset, flowDataset],
     };
-  }, [periods, cashSeries, palette, config.chartType, config.tension, config.customColors, cjsType]);
+  }, [periods, cashSeries, palette, config.chartType, config.tension, config.customColors, cjsType, ui.pointRing]);
 
-  const options = baseCartesianOptions(palette, config, cjsType);
+  const options = baseCartesianOptions(palette, config, cjsType, ui);
 
   return (
     <Chart

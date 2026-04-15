@@ -8,7 +8,7 @@ import { useT } from '../i18n/translations';
 import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
-import { radialOptions } from './chartHelpers';
+import { radialOptions, useUiChartTokens } from './chartHelpers';
 import ChartCard from './ChartCard';
 
 export const CHART_ID = 'cost-structure';
@@ -21,6 +21,7 @@ type InnerProps = {
 };
 
 function CostStructureInner({ periods, palette, config, chartRef }: InnerProps) {
+  const ui = useUiChartTokens();
   const cjsType: 'doughnut' | 'pie' | 'polarArea' =
     config.chartType === 'pie'
       ? 'pie'
@@ -47,7 +48,7 @@ function CostStructureInner({ periods, palette, config, chartRef }: InnerProps) 
     };
   }, [periods, palette, config.customColors]);
 
-  const baseOpts = radialOptions(palette, config);
+  const baseOpts = radialOptions(palette, config, ui);
   const opts = {
     ...baseOpts,
     ...(cjsType === 'doughnut' ? { cutout: '58%' } : {}),

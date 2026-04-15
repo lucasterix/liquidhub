@@ -9,6 +9,7 @@ import { Palette, seriesColor, hexToRgba } from '../theme/palettes';
 import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
 import ChartCard from './ChartCard';
+import { useUiChartTokens } from './chartHelpers';
 
 export const CHART_ID = 'waterfall';
 
@@ -48,6 +49,7 @@ function buildSteps(periods: Period[]): WaterfallStep[] {
 
 function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
   const steps = useMemo(() => buildSteps(periods), [periods]);
+  const ui = useUiChartTokens();
 
   const data = useMemo(() => {
     const totalColor = seriesColor(palette, 0, config.customColors);
@@ -87,10 +89,10 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: palette.tooltipBg,
-        titleColor: '#e9eefb',
-        bodyColor: '#9ba9c8',
-        borderColor: palette.tooltipBorder,
+        backgroundColor: ui.tooltipBg,
+        titleColor: ui.tooltipTitle,
+        bodyColor: ui.tooltipBody,
+        borderColor: palette.tooltipBorder ?? ui.tooltipBorder,
         borderWidth: 1,
         padding: 12,
         cornerRadius: 8,
@@ -107,13 +109,13 @@ function WaterfallInner({ periods, palette, config, chartRef }: InnerProps) {
     },
     scales: {
       x: {
-        ticks: { color: '#9ba9c8' },
+        ticks: { color: ui.tick },
         grid: { display: false },
       },
       y: {
         beginAtZero: config.beginAtZero,
-        ticks: { color: '#9ba9c8', callback: (v) => formatEUR(Number(v)) },
-        grid: { display: config.showGrid, color: palette.grid },
+        ticks: { color: ui.tick, callback: (v) => formatEUR(Number(v)) },
+        grid: { display: config.showGrid, color: ui.grid },
       },
     },
   };

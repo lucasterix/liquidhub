@@ -9,6 +9,7 @@ const de: Dict = {
   'nav.chartsHead': 'Alle Grafen',
   'header.currencyTitle': 'Währung wechseln',
   'header.languageTitle': 'Sprache wechseln',
+  'header.themeTitle': 'Hell/Dunkel wechseln',
 
   // Dashboard hero
   'dashboard.title': 'Finanz-Dashboard',
@@ -216,6 +217,7 @@ const en: Dict = {
   'nav.chartsHead': 'All charts',
   'header.currencyTitle': 'Switch currency',
   'header.languageTitle': 'Switch language',
+  'header.themeTitle': 'Toggle light / dark',
 
   // Dashboard hero
   'dashboard.title': 'Finance Dashboard',

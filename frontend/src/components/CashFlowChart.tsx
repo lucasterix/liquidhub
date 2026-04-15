@@ -12,6 +12,7 @@ import {
   baseCartesianOptions,
   isStacked,
   resolveChartJsType,
+  useUiChartTokens,
 } from './chartHelpers';
 import ChartCard from './ChartCard';
 import { useChartDragEditor, DragHandler } from './useChartDragEditor';
@@ -31,6 +32,7 @@ type InnerProps = {
 function CashFlowInner({ periods, palette, config, chartRef, setField }: InnerProps) {
   const cjsType = resolveChartJsType(config.chartType);
   const stacked = isStacked(config.chartType);
+  const ui = useUiChartTokens();
 
   const data = useMemo(() => {
     const inColor = seriesColor(palette, 0, config.customColors);
@@ -76,7 +78,7 @@ function CashFlowInner({ periods, palette, config, chartRef, setField }: InnerPr
           fill: isArea ? 'origin' : false,
           pointRadius: 3,
           pointHoverRadius: 5,
-          pointBackgroundColor: '#0b1120',
+          pointBackgroundColor: ui.pointRing,
           pointBorderColor: inColor,
           pointBorderWidth: 2,
         },
@@ -91,14 +93,14 @@ function CashFlowInner({ periods, palette, config, chartRef, setField }: InnerPr
           fill: isArea ? 'origin' : false,
           pointRadius: 3,
           pointHoverRadius: 5,
-          pointBackgroundColor: '#0b1120',
+          pointBackgroundColor: ui.pointRing,
           pointBorderColor: outColor,
           pointBorderWidth: 2,
         }
       );
     }
     return { labels, datasets };
-  }, [periods, palette, config.chartType, config.tension, config.customColors, stacked, cjsType]);
+  }, [periods, palette, config.chartType, config.tension, config.customColors, stacked, cjsType, ui.pointRing]);
 
   const handlers: Array<DragHandler | null> = useMemo(() => {
     return [
@@ -111,7 +113,7 @@ function CashFlowInner({ periods, palette, config, chartRef, setField }: InnerPr
 
   useChartDragEditor(chartRef, handlers);
 
-  const options = baseCartesianOptions(palette, config, cjsType);
+  const options = baseCartesianOptions(palette, config, cjsType, ui);
 
   return (
     <Chart

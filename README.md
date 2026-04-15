@@ -46,6 +46,7 @@ by [PEBS gUG](https://pebs.eu))
 | **i18n** | Full German / English UI switch via a header toggle, persisted per browser; the `<html lang>` attribute updates reactively |
 | **Transparent export** | Optional transparent-background PNG export for slide decks and reports |
 | **Drag-to-edit** | Click and drag any bar or combo-chart data point directly on the canvas to change the underlying planning data — writes straight to the store |
+| **Light & dark mode** | A sun/moon toggle in the header flips the entire site (surfaces, charts, tooltips, axis labels) between a soft light theme and the default dark one; persisted per browser |
 
 ## Screenshots
 
@@ -53,9 +54,9 @@ by [PEBS gUG](https://pebs.eu))
 |---|---|
 | ![Chart detail](docs/screenshots/chart-detail.png) | ![Settings popover](docs/screenshots/settings-popover.png) |
 
-| Impressum |
-|---|
-| ![Impressum](docs/screenshots/impressum.png) |
+| Light theme | Impressum |
+|---|---|
+| ![Light mode](docs/screenshots/dashboard-light.png) | ![Impressum](docs/screenshots/impressum.png) |
 
 ## Architecture
 
@@ -164,6 +165,13 @@ docker compose up -d --build
 Short, reverse-chronological changelog of the most visible updates.
 See `git log --oneline` for the full history.
 
+- **Light theme.** Sun/moon toggle in the header flips the entire site
+  between the default dark theme and a soft light theme. CSS custom
+  properties are redefined under `html[data-theme="light"]`, and every
+  chart component subscribes to `useUiTheme` via a `useUiChartTokens()`
+  helper so tooltips, grid lines, and axis labels re-render with the
+  correct contrast on both themes. The preference persists across
+  sessions.
 - **Drag-to-edit data points.** Mouse-drag (or touch-drag) any bar or
   combo-chart point to rewrite the underlying planning value in the
   Zustand store. A small `useChartDragEditor` hook attaches

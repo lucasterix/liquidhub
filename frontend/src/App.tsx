@@ -6,16 +6,26 @@ import Impressum from './pages/Impressum';
 import ChartsMenu from './components/ChartsMenu';
 import CurrencySwitcher from './components/CurrencySwitcher';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import ThemeSwitcher from './components/ThemeSwitcher';
 import { useLanguage } from './i18n/useLanguage';
+import { useUiTheme } from './theme/useUiTheme';
 import { useT } from './i18n/translations';
 
 export default function App() {
   const lang = useLanguage((s) => s.lang);
+  const mode = useUiTheme((s) => s.mode);
   const t = useT();
 
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', mode === 'light' ? '#f5f7fb' : '#0b1120');
+  }, [mode]);
 
   return (
     <div className="app">
@@ -31,6 +41,7 @@ export default function App() {
           </nav>
           <CurrencySwitcher />
           <LanguageSwitcher />
+          <ThemeSwitcher />
         </div>
       </header>
       <main className="app-main">

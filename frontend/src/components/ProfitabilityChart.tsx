@@ -13,6 +13,7 @@ import {
   buildSeriesDataset,
   isStacked,
   resolveChartJsType,
+  useUiChartTokens,
 } from './chartHelpers';
 import ChartCard from './ChartCard';
 import { useChartDragEditor, DragHandler } from './useChartDragEditor';
@@ -32,6 +33,7 @@ type InnerProps = {
 function ProfitabilityInner({ periods, palette, config, chartRef, setField }: InnerProps) {
   const cjsType = resolveChartJsType(config.chartType);
   const stacked = isStacked(config.chartType);
+  const ui = useUiChartTokens();
 
   const data = useMemo(() => {
     const labels = periods.map((p) => p.label);
@@ -72,6 +74,7 @@ function ProfitabilityInner({ periods, palette, config, chartRef, setField }: In
           color: seriesColor(palette, 0, config.customColors),
           type: config.chartType,
           tension: config.tension,
+          pointRing: ui.pointRing,
         }),
         buildSeriesDataset({
           label: 'Kosten',
@@ -79,6 +82,7 @@ function ProfitabilityInner({ periods, palette, config, chartRef, setField }: In
           color: seriesColor(palette, 2, config.customColors),
           type: config.chartType,
           tension: config.tension,
+          pointRing: ui.pointRing,
         }),
         buildSeriesDataset({
           label: 'Gewinn',
@@ -86,10 +90,11 @@ function ProfitabilityInner({ periods, palette, config, chartRef, setField }: In
           color: seriesColor(palette, 1, config.customColors),
           type: config.chartType,
           tension: config.tension,
+          pointRing: ui.pointRing,
         }),
       ],
     };
-  }, [periods, palette, config.chartType, config.tension, config.customColors, stacked]);
+  }, [periods, palette, config.chartType, config.tension, config.customColors, stacked, ui.pointRing]);
 
   const handlers: Array<DragHandler | null> = useMemo(() => {
     if (stacked) {
@@ -120,7 +125,7 @@ function ProfitabilityInner({ periods, palette, config, chartRef, setField }: In
 
   useChartDragEditor(chartRef, handlers);
 
-  const options = baseCartesianOptions(palette, config, cjsType);
+  const options = baseCartesianOptions(palette, config, cjsType, ui);
 
   return (
     <Chart

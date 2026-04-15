@@ -2,6 +2,7 @@ import type { ChartOptions, TooltipItem } from 'chart.js';
 import { Palette, hexToRgba } from '../theme/palettes';
 import { ChartConfig, ChartTypeId } from '../theme/useChartTheme';
 import { formatEUR } from '../lib/finance';
+import { getChartTokens, useUiTheme, ChartTokens } from '../theme/useUiTheme';
 
 export function resolveChartJsType(type: ChartTypeId): 'bar' | 'line' {
   if (type === 'line' || type === 'area' || type === 'step-line') return 'line';
@@ -17,13 +18,16 @@ export function isHorizontal(type: ChartTypeId): boolean {
 }
 
 export function isFilledLine(type: ChartTypeId): boolean {
-  // Area always fills; line never fills. This keeps the two types
-  // visually distinct regardless of any user-facing fill toggle.
   return type === 'area';
 }
 
 export function isSteppedLine(type: ChartTypeId): boolean {
   return type === 'step-line';
+}
+
+export function useUiChartTokens(): ChartTokens {
+  const mode = useUiTheme((s) => s.mode);
+  return getChartTokens(mode);
 }
 
 type SeriesOpts = {
@@ -33,10 +37,11 @@ type SeriesOpts = {
   type: ChartTypeId;
   tension: number;
   stack?: string;
+  pointRing?: string;
 };
 
 export function buildSeriesDataset(opts: SeriesOpts) {
-  const { label, data, color, type, tension, stack } = opts;
+  const { label, data, color, type, tension, stack, pointRing = '#0b1120' } = opts;
   const cjsType = resolveChartJsType(type);
   if (cjsType === 'line') {
     const stepped = isSteppedLine(type);
@@ -51,7 +56,7 @@ export function buildSeriesDataset(opts: SeriesOpts) {
       fill: isFilledLine(type),
       pointRadius: 3,
       pointHoverRadius: 5,
-      pointBackgroundColor: '#0b1120',
+      pointBackgroundColor: pointRing,
       pointBorderColor: color,
       pointBorderWidth: 2,
     };
@@ -72,7 +77,8 @@ export function buildSeriesDataset(opts: SeriesOpts) {
 export function baseCartesianOptions(
   palette: Palette,
   config: ChartConfig,
-  kind: 'bar' | 'line'
+  kind: 'bar' | 'line',
+  ui: ChartTokens
 ): ChartOptions<'bar'> | ChartOptions<'line'> {
   const stacked = isStacked(config.chartType);
   const horizontal = isHorizontal(config.chartType);
@@ -80,14 +86,14 @@ export function baseCartesianOptions(
     stacked,
     beginAtZero: config.beginAtZero,
     ticks: {
-      color: '#9ba9c8',
+      color: ui.tick,
       callback: (v: string | number) => formatEUR(Number(v)),
     },
-    grid: { display: config.showGrid, color: palette.grid },
+    grid: { display: config.showGrid, color: ui.grid },
   };
   const categoryAxis = {
     stacked,
-    ticks: { color: '#9ba9c8' },
+    ticks: { color: ui.tick },
     grid: { display: false },
   };
   const opts: ChartOptions<'bar' | 'line'> = {
@@ -100,17 +106,17 @@ export function baseCartesianOptions(
         display: config.showLegend,
         position: config.legendPosition,
         labels: {
-          color: '#9ba9c8',
+          color: ui.tick,
           usePointStyle: true,
           padding: 16,
           font: { size: 12, weight: 500 },
         },
       },
       tooltip: {
-        backgroundColor: palette.tooltipBg,
-        titleColor: '#e9eefb',
-        bodyColor: '#9ba9c8',
-        borderColor: palette.tooltipBorder,
+        backgroundColor: ui.tooltipBg,
+        titleColor: ui.tooltipTitle,
+        bodyColor: ui.tooltipBody,
+        borderColor: palette.tooltipBorder ?? ui.tooltipBorder,
         borderWidth: 1,
         padding: 12,
         cornerRadius: 8,
@@ -131,7 +137,11 @@ export function baseCartesianOptions(
     : (opts as ChartOptions<'line'>);
 }
 
-export function radialOptions(palette: Palette, config: ChartConfig): ChartOptions<'doughnut' | 'pie' | 'polarArea'> {
+export function radialOptions(
+  palette: Palette,
+  config: ChartConfig,
+  ui: ChartTokens
+): ChartOptions<'doughnut' | 'pie' | 'polarArea'> {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -140,17 +150,17 @@ export function radialOptions(palette: Palette, config: ChartConfig): ChartOptio
         display: config.showLegend,
         position: config.legendPosition,
         labels: {
-          color: '#9ba9c8',
+          color: ui.tick,
           usePointStyle: true,
           padding: 14,
           font: { size: 12, weight: 500 },
         },
       },
       tooltip: {
-        backgroundColor: palette.tooltipBg,
-        titleColor: '#e9eefb',
-        bodyColor: '#9ba9c8',
-        borderColor: palette.tooltipBorder,
+        backgroundColor: ui.tooltipBg,
+        titleColor: ui.tooltipTitle,
+        bodyColor: ui.tooltipBody,
+        borderColor: palette.tooltipBorder ?? ui.tooltipBorder,
         borderWidth: 1,
         padding: 12,
         cornerRadius: 8,

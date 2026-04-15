@@ -10,6 +10,7 @@ import { ChartConfig } from '../theme/useChartTheme';
 import type { Period } from '../types';
 import ChartCard from './ChartCard';
 import { useChartDragEditor, DragHandler } from './useChartDragEditor';
+import { useUiChartTokens } from './chartHelpers';
 
 export const CHART_ID = 'revenue-margin';
 
@@ -24,6 +25,7 @@ type InnerProps = {
 };
 
 function RevenueMarginInner({ periods, palette, config, chartRef, setRevenue }: InnerProps) {
+  const ui = useUiChartTokens();
   const data = useMemo(() => {
     const revColor = seriesColor(palette, 0, config.customColors);
     const marginColor = seriesColor(palette, 1, config.customColors);
@@ -55,7 +57,7 @@ function RevenueMarginInner({ periods, palette, config, chartRef, setRevenue }: 
           fill: false,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#0b1120',
+          pointBackgroundColor: ui.pointRing,
           pointBorderColor: marginColor,
           pointBorderWidth: 2,
           yAxisID: 'y1',
@@ -63,7 +65,7 @@ function RevenueMarginInner({ periods, palette, config, chartRef, setRevenue }: 
         },
       ],
     };
-  }, [periods, palette, config.tension, config.customColors]);
+  }, [periods, palette, config.tension, config.customColors, ui.pointRing]);
 
   const options: ChartOptions<'bar'> = {
     responsive: true,
@@ -73,13 +75,13 @@ function RevenueMarginInner({ periods, palette, config, chartRef, setRevenue }: 
       legend: {
         display: config.showLegend,
         position: config.legendPosition,
-        labels: { color: '#9ba9c8', usePointStyle: true, padding: 16 },
+        labels: { color: ui.tick, usePointStyle: true, padding: 16 },
       },
       tooltip: {
-        backgroundColor: palette.tooltipBg,
-        titleColor: '#e9eefb',
-        bodyColor: '#9ba9c8',
-        borderColor: palette.tooltipBorder,
+        backgroundColor: ui.tooltipBg,
+        titleColor: ui.tooltipTitle,
+        bodyColor: ui.tooltipBody,
+        borderColor: palette.tooltipBorder ?? ui.tooltipBorder,
         borderWidth: 1,
         padding: 12,
         cornerRadius: 8,
@@ -93,17 +95,17 @@ function RevenueMarginInner({ periods, palette, config, chartRef, setRevenue }: 
       },
     },
     scales: {
-      x: { ticks: { color: '#9ba9c8' }, grid: { display: false } },
+      x: { ticks: { color: ui.tick }, grid: { display: false } },
       y: {
         beginAtZero: config.beginAtZero,
         position: 'left',
-        ticks: { color: '#9ba9c8', callback: (v) => formatEUR(Number(v)) },
-        grid: { display: config.showGrid, color: palette.grid },
+        ticks: { color: ui.tick, callback: (v) => formatEUR(Number(v)) },
+        grid: { display: config.showGrid, color: ui.grid },
       },
       y1: {
         position: 'right',
         beginAtZero: true,
-        ticks: { color: '#9ba9c8', callback: (v) => `${Number(v).toFixed(0)}%` },
+        ticks: { color: ui.tick, callback: (v) => `${Number(v).toFixed(0)}%` },
         grid: { display: false },
       },
     },
