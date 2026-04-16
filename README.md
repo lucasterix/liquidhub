@@ -26,7 +26,7 @@ backend exists only to serve static assets and optional aggregation
 endpoints. Every chart can be themed individually, switched to a different
 chart type on the fly, and exported as PNG, CSV, or JSON.
 
-**Live deployment:** <https://pebs.eu/liquidhub> (hosted on Hetzner, managed
+**Live deployment:** <https://scan.businessplans24.com> (hosted on Hetzner, managed
 by [PEBS gUG](https://pebs.eu))
 
 ## Feature highlights
@@ -246,4 +246,4 @@ liquidity planning, consulting, or full-stack engineering.
 
 ---
 
-[Impressum](https://pebs.eu/impressum) · [Kontakt](mailto:vorstand@pebs.eu)
+[Impressum](https://scan.businessplans24.com/impressum) · [Kontakt](mailto:vorstand@pebs.eu)

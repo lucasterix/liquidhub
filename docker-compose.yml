@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-http://localhost}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-https://scan.businessplans24.com}
     networks:
       - liquidhub-network
     healthcheck:
